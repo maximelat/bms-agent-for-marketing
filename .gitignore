@@ -1,0 +1,10 @@
+# Secrets locaux
+agentic-needs/config.php
+
+# MacOS
+.DS_Store
+
+# Logs temporaires
+*.log
+
+
