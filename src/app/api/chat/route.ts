@@ -26,6 +26,8 @@ const requestSchema = z.object({
   previousResponseId: z.string().optional(),
 });
 
+type IncomingMessage = z.infer<typeof requestSchema>["messages"][number];
+
 const agentResponseSchema = z.object({
   reply: z.string(),
   phase: z.enum(AGENT_PHASES),
@@ -95,7 +97,7 @@ export async function POST(request: Request) {
       ],
     };
 
-    const conversationMessages = parsed.data.messages.map((message, index) => {
+    const conversationMessages = parsed.data.messages.map((message: IncomingMessage, index: number) => {
       if (message.role === "assistant") {
         const assistantMessage: ResponseOutputMessage = {
           id: `msg_${index}_${randomUUID()}`,
