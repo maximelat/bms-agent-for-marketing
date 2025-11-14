@@ -163,7 +163,10 @@ export const AgentPlayground = () => {
           ))}
         </header>
 
-        <div className="flex-1 space-y-4 overflow-y-auto">
+        <div
+          className="flex-1 space-y-4 overflow-y-auto [&::-webkit-scrollbar]:hidden"
+          style={{ scrollbarWidth: "none" }}
+        >
           {messages.map((message, index) => (
             <div
               key={index}
