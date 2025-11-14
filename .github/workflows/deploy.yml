@@ -60,7 +60,8 @@ jobs:
           server: ${{ secrets.OVH_ADRESSE }}
           username: ${{ secrets.FTP_LOGIN }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
+          protocol: ftp
+          port: 21
           server-dir: ${{ secrets.FTP_TARGET_DIR }}
           local-dir: ${{ env.PROJECT_ROOT }}/deploy/
           exclude: |
