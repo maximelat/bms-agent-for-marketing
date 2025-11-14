@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { z } from "zod";
+import type {
+  ResponseInput,
+  EasyInputMessage,
+} from "openai/resources/responses/responses";
 import {
   buildSystemPrompt,
   buildSystemPromptV2,
@@ -75,9 +79,8 @@ export async function POST(request: Request) {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   try {
-    const systemMessage: OpenAI.EasyInputMessage = {
+    const systemMessage: EasyInputMessage = {
       role: "system",
-      type: "message",
       content: [
         {
           type: "input_text",
@@ -89,18 +92,19 @@ export async function POST(request: Request) {
       ],
     };
 
-    const conversationMessages: OpenAI.EasyInputMessage[] =
-      parsed.data.messages.map((message) => ({
+    const conversationMessages: EasyInputMessage[] = parsed.data.messages.map(
+      (message) => ({
         role: message.role,
-        type: "message",
         content: [{ type: "input_text", text: message.content }],
-      }));
+      }),
+    );
+
+    const input: ResponseInput = [systemMessage, ...conversationMessages];
 
     const completion = await openai.responses.create({
       model: selectModelForPhase(parsed.data.phase),
       reasoning: { effort: "none" },
-      response_format: { type: "json_object" },
-      input: [systemMessage, ...conversationMessages],
+      input,
     });
 
     const raw =
