@@ -37,8 +37,11 @@ export const AgentPlayground = () => {
   const [finalizing, setFinalizing] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [agentVersion, setAgentVersion] = useState<"v1" | "v2">("v1");
+  const [recipientEmail, setRecipientEmail] = useState("");
 
   const canFinalize = status === "ready" && structuredNeed.copilotOpportunities.length > 0;
+  const emailIsValid = /\S+@\S+\.\S+/.test(recipientEmail.trim());
+  const canSendSummary = canFinalize && emailIsValid;
 
   const transcriptPayload = useMemo(
     () => messages.map((m) => ({ role: m.role, content: m.content })),
@@ -96,6 +99,7 @@ export const AgentPlayground = () => {
         body: JSON.stringify({
           structuredNeed,
           transcript: transcriptPayload,
+          recipientEmail: recipientEmail.trim(),
         }),
       });
 
@@ -199,9 +203,25 @@ export const AgentPlayground = () => {
             <span>Statut : {status === "ready" ? "Prêt pour synthèse" : "Collecte en cours"}</span>
             {feedback && <span className="text-amber-600">{feedback}</span>}
           </div>
+          <div className="grid gap-2">
+            <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+              Email destinataire n8n
+              <input
+                type="email"
+                className="mt-1 w-full rounded-2xl border border-zinc-200 px-4 py-2 text-sm outline-none focus:border-emerald-500"
+                placeholder="prenom.nom@bms.com"
+                value={recipientEmail}
+                onChange={(event) => setRecipientEmail(event.target.value)}
+                required
+              />
+            </label>
+            {!emailIsValid && recipientEmail.length > 0 && (
+              <p className="text-xs text-amber-600">Saisissez une adresse valide avant l’envoi.</p>
+            )}
+          </div>
           <button
             className="flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-600 px-4 py-3 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:border-zinc-200 disabled:text-zinc-400"
-            disabled={!canFinalize || finalizing}
+            disabled={!canSendSummary || finalizing}
             onClick={finalize}
           >
             {finalizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
