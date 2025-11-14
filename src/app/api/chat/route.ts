@@ -21,7 +21,7 @@ const agentResponseSchema = z.object({
   reply: z.string(),
   phase: z.enum(AGENT_PHASES),
   status: z.enum(["continue", "ready"]),
-  normalizedUpdate: z.record(z.any()).optional(),
+  normalizedUpdate: z.record(z.string(), z.any()).optional(),
 });
 
 const selectModelForPhase = (phase?: AgentPhase) => {

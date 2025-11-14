@@ -34,9 +34,11 @@ export const mergeStructuredNeed = (
     return destination;
   };
 
-  return assign(
-    cloned as Record<string, unknown>,
-    update as Record<string, unknown>,
-  ) as StructuredNeed;
+  const merged = assign(
+    cloned as unknown as Record<string, unknown>,
+    update as unknown as Record<string, unknown>,
+  );
+
+  return merged as unknown as StructuredNeed;
 };
 

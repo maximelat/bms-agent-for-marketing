@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import {
   StructuredNeed,
   PriorityLevel,
@@ -226,16 +226,22 @@ export const QuestionnaireAgent = () => {
     nextSteps,
   ]);
 
-  const addItem = <T,>(setter: (value: T[]) => void, factory: () => T) => {
+  const addItem = <T,>(
+    setter: Dispatch<SetStateAction<T[]>>,
+    factory: () => T,
+  ) => {
     setter((prev: T[]) => [...prev, factory()]);
   };
 
-  const removeItem = <T,>(setter: (value: T[]) => void, index: number) => {
+  const removeItem = <T,>(
+    setter: Dispatch<SetStateAction<T[]>>,
+    index: number,
+  ) => {
     setter((prev: T[]) => prev.filter((_, idx) => idx !== index));
   };
 
   const updateItem = <T extends object>(
-    setter: (value: T[]) => void,
+    setter: Dispatch<SetStateAction<T[]>>,
     index: number,
     field: keyof T,
     value: string,
