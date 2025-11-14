@@ -29,6 +29,8 @@ const requestSchema = z.object({
 
 type IncomingMessage = z.infer<typeof requestSchema>["messages"][number];
 
+const REASONING_MODELS = ["gpt-5.1", "gpt-5", "gpt-5-mini", "gpt-5-nano", "o3", "o1"];
+
 const selectModelForPhase = (phase?: AgentPhase) => {
   if (phase === "normalisation") {
     return (
@@ -44,6 +46,10 @@ const selectModelForPhase = (phase?: AgentPhase) => {
     process.env.OPENAI_MODEL ??
     "gpt-4o-mini"
   );
+};
+
+const isReasoningModel = (model: string): boolean => {
+  return REASONING_MODELS.some((rm) => model.includes(rm));
 };
 
 export async function POST(request: Request) {
@@ -65,75 +71,101 @@ export async function POST(request: Request) {
   }
 
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const model = selectModelForPhase(parsed.data.phase);
+  const useReasoningAPI = isReasoningModel(model);
 
   try {
-    const systemMessage: EasyInputMessage = {
-      role: "system",
-      content: [
-        {
-          type: "input_text",
-          text:
-            parsed.data.agentVersion === "v2"
-              ? buildSystemPromptV2()
-              : buildSystemPrompt(),
-        },
-      ],
-    };
+    const systemPrompt =
+      parsed.data.agentVersion === "v2"
+        ? buildSystemPromptV2()
+        : buildSystemPrompt();
 
-    const conversationMessages = parsed.data.messages.map((message: IncomingMessage, index: number) => {
-      if (message.role === "assistant") {
-        const assistantMessage: ResponseOutputMessage = {
-          id: `msg_${index}_${randomUUID()}`,
-          role: "assistant",
-          status: "completed",
-          type: "message",
-          content: [
-            {
-              type: "output_text",
-              text: message.content,
-              annotations: [],
-            },
-          ],
-        };
-        return assistantMessage;
-      }
-
-      const userMessage: EasyInputMessage = {
-        role: message.role,
-        content: [{ type: "input_text", text: message.content }],
+    if (useReasoningAPI) {
+      // Modèle reasoning → Responses API
+      const systemMessage: EasyInputMessage = {
+        role: "system",
+        content: [{ type: "input_text", text: systemPrompt }],
       };
-      return userMessage;
-    });
 
-    const input: ResponseInput = [systemMessage, ...conversationMessages];
+      const conversationMessages = parsed.data.messages.map(
+        (message: IncomingMessage, index: number) => {
+          if (message.role === "assistant") {
+            const assistantMessage: ResponseOutputMessage = {
+              id: `msg_${index}_${randomUUID()}`,
+              role: "assistant",
+              status: "completed",
+              type: "message",
+              content: [
+                {
+                  type: "output_text",
+                  text: message.content,
+                  annotations: [],
+                },
+              ],
+            };
+            return assistantMessage;
+          }
 
-    const model = selectModelForPhase(parsed.data.phase);
-    const reasoning =
-      typeof model === "string" && model.includes("5.1")
+          const userMessage: EasyInputMessage = {
+            role: message.role,
+            content: [{ type: "input_text", text: message.content }],
+          };
+          return userMessage;
+        },
+      );
+
+      const input: ResponseInput = [systemMessage, ...conversationMessages];
+
+      const reasoning = model.includes("5.1")
         ? { effort: "none" as const }
         : undefined;
 
-    const completion = await openai.responses.create({
-      model,
-      ...(reasoning ? { reasoning } : {}),
-      ...(parsed.data.previousResponseId
-        ? { previous_response_id: parsed.data.previousResponseId }
-        : {}),
-      input,
-    });
+      const completion = await openai.responses.create({
+        model,
+        ...(reasoning ? { reasoning } : {}),
+        ...(parsed.data.previousResponseId
+          ? { previous_response_id: parsed.data.previousResponseId }
+          : {}),
+        input,
+      });
 
-    const raw =
-      (completion.output ?? [])
-        .flatMap((item: any) => item.content ?? [])
-        .find((contentItem: any) => contentItem.type === "output_text")?.text ??
-      "{}";
-    const asJson = JSON.parse(raw);
-    const agent = agentResponseSchema.parse(asJson);
+      const raw =
+        (completion.output ?? [])
+          .flatMap((item: any) => item.content ?? [])
+          .find((contentItem: any) => contentItem.type === "output_text")
+          ?.text ?? "{}";
+      const asJson = JSON.parse(raw);
+      const agent = agentResponseSchema.parse(asJson);
 
-    return NextResponse.json({
-      ...agent,
-      responseId: completion.id,
-    });
+      return NextResponse.json({
+        ...agent,
+        responseId: completion.id,
+      });
+    } else {
+      // Modèle non-reasoning → Chat Completions API
+      const chatMessages = [
+        { role: "system" as const, content: systemPrompt },
+        ...parsed.data.messages.map((m: IncomingMessage) => ({
+          role: m.role as "user" | "assistant",
+          content: m.content,
+        })),
+      ];
+
+      const completion = await openai.chat.completions.create({
+        model,
+        messages: chatMessages,
+        response_format: { type: "json_object" },
+      });
+
+      const raw = completion.choices[0]?.message?.content ?? "{}";
+      const asJson = JSON.parse(raw);
+      const agent = agentResponseSchema.parse(asJson);
+
+      return NextResponse.json({
+        ...agent,
+        responseId: completion.id,
+      });
+    }
   } catch (error) {
     console.error("chat route error", error);
     return NextResponse.json(
