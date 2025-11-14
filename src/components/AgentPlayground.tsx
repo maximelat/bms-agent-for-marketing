@@ -104,11 +104,18 @@ export const AgentPlayground = () => {
       }
 
       setMessages([...nextMessages, { role: "assistant", content: data.reply }]);
-      setStructuredNeed((prev) => mergeStructuredNeed(prev, data.normalizedUpdate));
+      const updatedNeed = mergeStructuredNeed(structuredNeed, data.normalizedUpdate);
+      setStructuredNeed(updatedNeed);
       setPhase(data.phase as AgentPhase);
-      setStatus(data.status === "ready" ? "ready" : "collect");
+      const newStatus = data.status === "ready" ? "ready" : "collect";
+      setStatus(newStatus);
       setPreviousResponseId(data.responseId ?? null);
       setTimeout(scrollToBottom, 100);
+
+      // Auto-génération du rapport si status passe à "ready"
+      if (newStatus === "ready" && status !== "ready" && updatedNeed.copilotOpportunities.length > 0) {
+        setFeedback("✅ Analyse terminée ! Le rapport est prêt. Renseignez votre email pour l'envoyer automatiquement.");
+      }
     } catch (error) {
       console.error(error);
       setMessages((prev) => [
