@@ -93,7 +93,7 @@ export async function POST(request: Request) {
         process.env.OPENAI_MODEL_PREMIUM ??
         process.env.OPENAI_MODEL ??
         "gpt-5.1",
-      reasoning: { effort: "none" },
+      reasoning: { effort: "medium" },
       input,
     });
 
