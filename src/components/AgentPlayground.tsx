@@ -77,7 +77,7 @@ export const AgentPlayground = () => {
         {
           role: "assistant",
           content:
-            "Je rencontre un incident technique. Veuillez contacter Maxime Latry, reformulez votre dernier point ou réessayez dans quelques secondes.",
+            "Je rencontre un incident technique avec Copilot. Reformulez votre dernier point ou réessayez dans quelques secondes.",
         },
       ]);
       setFeedback("Erreur de dialogue, tentative suivante recommandée.");
