@@ -51,6 +51,8 @@ Secrets requis côté repo GitHub:
 | `FTP_LOGIN` / `FTP_PASSWORD` | identifiants FTP |
 | `FTP_TARGET_DIR` | répertoire distant, ex. `/www/projet/bms/agentic-needs/` |
 
+Variable optionnelle côté repo GitHub : `vars.PROJECT_ROOT` (par défaut `.`) si le code vit dans un sous-dossier.
+
 Une fois remplis, chaque push sur `main` reconstruit et synchronise le site automatiquement.
 
 ## Webhook & Google Sheet
@@ -63,6 +65,10 @@ Vous pouvez remplacer cette valeur via `N8N_WEBHOOK_URL` pour pointer vers une a
 - L’API `/api/realtime-session` génère un token éphémère (client secret) pour ouvrir une session WebRTC côté navigateur.
 - La page `/realtime` embarque un composant expérimental `RealtimeConsole` : connexion audio, logs, et envoi de texte via data channel.
 - Exemples audio (`gpt-audio` / `gpt-audio-mini`) et roadmap sont détaillés dans cette page pour préparer les déclinaisons live.
+
+## Agent formulaire
+
+La page `/questionnaire` reprend la trame Google Forms : persona, moments critiques (nouvelle version de l’ancienne section “Workflow & volumes”), pain points, données, opportunités Copilot, automatisations et strategic fit. Soumission → conversion en `StructuredNeed` + envoi webhook, idéal pour des interviews asynchrones.
 
 ## Stack
 

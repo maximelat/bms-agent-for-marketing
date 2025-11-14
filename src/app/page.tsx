@@ -1,4 +1,5 @@
 import { AgentPlayground } from "@/components/AgentPlayground";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -12,11 +13,11 @@ export default function Home() {
           <p className="max-w-3xl text-lg text-zinc-600">
             Ce compagnon assiste les équipes marketing produits BMS pour capturer des cas d’usage, cartographier les
             données SharePoint/Teams et préparer la matrice de strategic fit. Chaque entretien est guidé, structuré et
-            exporté automatiquement vers le webhook n8n et par email.
+            exporté automatiquement vers le webhook n8n (email géré ensuite par vos automatisations).
           </p>
         </header>
 
-        <section className="grid gap-6 rounded-3xl border border-emerald-100 bg-white/80 p-6 shadow-sm lg:grid-cols-3">
+        <section className="grid gap-6 rounded-3xl border border-emerald-100 bg-white/80 p-6 shadow-sm lg:grid-cols-4">
           <div>
             <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">3 temps forts</p>
             <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-zinc-600">
@@ -34,24 +35,30 @@ export default function Home() {
             </ul>
           </div>
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">Prérequis</p>
+            <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">Modes complémentaires</p>
             <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-zinc-600">
-              <li>OPENAI_API_KEY valide (GPT-4o-mini par défaut).</li>
-              <li>N8N_WEBHOOK_URL optionnel, sinon valeur fournie.</li>
-              <li>SMTP_* + EMAIL_FROM si envoi email requis.</li>
+              <li>
+                Formulaire guidé (questionnaire Google Forms) :{" "}
+                <Link href="/questionnaire" className="text-emerald-600 underline underline-offset-4">
+                  Agent Questionnaire
+                </Link>
+                .
+              </li>
+              <li>
+                Sessions audio/WebRTC (gpt-realtime & gpt-audio) :{" "}
+                <Link href="/realtime" className="text-emerald-600 underline underline-offset-4">
+                  Mode Realtime
+                </Link>
+                .
+              </li>
             </ul>
           </div>
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">Autres modalités</p>
+            <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">Prérequis</p>
             <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-zinc-600">
-              <li>
-                Variante Realtime & audio (gpt-realtime / gpt-audio) disponible{" "}
-                <a href="/realtime" className="text-emerald-600 underline underline-offset-4">
-                  via cette page dédiée
-                </a>
-                .
-              </li>
-              <li>Compatibilité future avec kiosques vocaux ou ateliers collectifs.</li>
+              <li>OPENAI_API_KEY valide (profil GPT-5 par défaut).</li>
+              <li>N8N_WEBHOOK_URL optionnel, sinon valeur fournie.</li>
+              <li>FTP_* + OVH_ADRESSE pour la CI/CD.</li>
             </ul>
           </div>
         </section>

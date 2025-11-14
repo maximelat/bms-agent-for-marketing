@@ -6,6 +6,9 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  PROJECT_ROOT: ${{ vars.PROJECT_ROOT || '.' }}
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -19,23 +22,33 @@ jobs:
         with:
           node-version: 20
 
+      - name: Afficher l'arborescence
+        run: ls -a
+
       - name: Install dependencies
-        run: npm install
+        run: |
+          cd "$PROJECT_ROOT"
+          npm install
 
       - name: Lint
-        run: npm run lint
+        run: |
+          cd "$PROJECT_ROOT"
+          npm run lint
 
       - name: Build
-        run: npm run build
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
           OPENAI_MODEL_FAST: ${{ secrets.OPENAI_MODEL_FAST }}
           OPENAI_MODEL_BALANCED: ${{ secrets.OPENAI_MODEL_BALANCED }}
           OPENAI_MODEL_PREMIUM: ${{ secrets.OPENAI_MODEL_PREMIUM }}
+        run: |
+          cd "$PROJECT_ROOT"
+          npm run build
 
       - name: Prepare deploy folder
         run: |
+          cd "$PROJECT_ROOT"
           npm prune --production
           mkdir -p deploy
           cp package.json package-lock.json next.config.ts tsconfig.json deploy/
@@ -49,7 +62,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           server-dir: ${{ secrets.FTP_TARGET_DIR }}
-          local-dir: deploy
+          local-dir: ${{ env.PROJECT_ROOT }}/deploy
           exclude: |
             **/.git*
             **/.github/**
