@@ -38,6 +38,7 @@ export const AgentPlayground = () => {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [agentVersion, setAgentVersion] = useState<"v1" | "v2">("v1");
   const [recipientEmail, setRecipientEmail] = useState("");
+  const [previousResponseId, setPreviousResponseId] = useState<string | null>(null);
 
   const canFinalize = status === "ready" && structuredNeed.copilotOpportunities.length > 0;
   const emailIsValid = /\S+@\S+\.\S+/.test(recipientEmail.trim());
@@ -61,7 +62,12 @@ export const AgentPlayground = () => {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages, phase, agentVersion }),
+        body: JSON.stringify({
+          messages: nextMessages,
+          phase,
+          agentVersion,
+          previousResponseId: previousResponseId ?? undefined,
+        }),
       });
 
       const data = await response.json();
@@ -73,6 +79,7 @@ export const AgentPlayground = () => {
       setStructuredNeed((prev) => mergeStructuredNeed(prev, data.normalizedUpdate));
       setPhase(data.phase as AgentPhase);
       setStatus(data.status === "ready" ? "ready" : "collect");
+      setPreviousResponseId(data.responseId ?? null);
     } catch (error) {
       console.error(error);
       setMessages((prev) => [
@@ -84,6 +91,7 @@ export const AgentPlayground = () => {
         },
       ]);
       setFeedback("Erreur de dialogue, tentative suivante recommandée.");
+      setPreviousResponseId(null);
     } finally {
       setLoading(false);
     }

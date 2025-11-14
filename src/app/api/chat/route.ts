@@ -23,6 +23,7 @@ const requestSchema = z.object({
   ),
   phase: z.enum(AGENT_PHASES).optional(),
   agentVersion: z.enum(["v1", "v2"]).optional(),
+  previousResponseId: z.string().optional(),
 });
 
 const agentResponseSchema = z.object({
@@ -124,6 +125,9 @@ export async function POST(request: Request) {
     const completion = await openai.responses.create({
       model: selectModelForPhase(parsed.data.phase),
       reasoning: { effort: "none" },
+      ...(parsed.data.previousResponseId
+        ? { previous_response_id: parsed.data.previousResponseId }
+        : {}),
       input,
     });
 
@@ -135,7 +139,10 @@ export async function POST(request: Request) {
     const asJson = JSON.parse(raw);
     const agent = agentResponseSchema.parse(asJson);
 
-    return NextResponse.json(agent);
+    return NextResponse.json({
+      ...agent,
+      responseId: completion.id,
+    });
   } catch (error) {
     console.error("chat route error", error);
     return NextResponse.json(
