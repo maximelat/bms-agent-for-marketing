@@ -43,6 +43,7 @@ export const AgentPlayground = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   const canFinalize = status === "ready" && structuredNeed.copilotOpportunities.length > 0;
   const emailIsValid = /\S+@\S+\.\S+/.test(recipientEmail.trim());
@@ -71,7 +72,9 @@ export const AgentPlayground = () => {
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   };
 
   const sendMessage = async () => {
@@ -244,6 +247,7 @@ export const AgentPlayground = () => {
         </header>
 
         <div
+          ref={messagesContainerRef}
           className="flex-1 min-h-0 space-y-4 overflow-y-auto [&::-webkit-scrollbar]:hidden"
           style={{ scrollbarWidth: "none" }}
         >
@@ -266,7 +270,6 @@ export const AgentPlayground = () => {
               Helios réfléchit...
             </div>
           )}
-          <div ref={messagesEndRef} />
         </div>
 
         <div className="mt-4 space-y-3">
