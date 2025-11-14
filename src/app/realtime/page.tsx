@@ -38,39 +38,47 @@ const audioOptions = [
 
 export default function RealtimePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 py-12 text-white">
-      <main className="mx-auto flex max-w-6xl flex-col gap-10 px-4 sm:px-6">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#03030b] via-[#070513] to-[#010109] py-12 text-white">
+      <div className="pointer-events-none absolute inset-x-[8%] top-0 h-64 rounded-full bg-gradient-to-r from-[#f472b6]/40 via-[#7c3aed]/30 to-transparent blur-[160px]" />
+      <main className="relative mx-auto flex max-w-6xl flex-col gap-10 px-4 sm:px-6">
         <header className="space-y-4">
-          <p className="text-xs uppercase tracking-[0.4em] text-emerald-300">Helios · Modalités audio & live</p>
+          <p className="text-xs uppercase tracking-[0.45em] text-pink-300/90">Helios · Modalités audio & live</p>
           <h1 className="text-4xl font-semibold text-white">Sessions synchrones & assistants vocaux</h1>
           <p className="max-w-3xl text-lg text-slate-300">
             Besoin d’un atelier collectif ou d’une expérience audio mains libres ? Cette page recense les deux options
             OpenAI à brancher sur Helios : le flux Realtime (WebRTC/WebSocket) et les sorties audio via Chat Completions.
           </p>
-          <Link href="/" className="inline-flex items-center text-sm text-emerald-300 underline underline-offset-4">
+          <Link href="/" className="inline-flex items-center text-sm text-pink-200 underline underline-offset-4">
             ← Retour au questionnaire classique
           </Link>
         </header>
 
-        <RealtimeConsole />
+        <section className="rounded-[32px] border border-white/10 bg-white/5 p-1 shadow-[0_35px_120px_rgba(1,0,8,0.8)]">
+          <div className="rounded-[28px] border border-white/10 bg-slate-950/60">
+            <RealtimeConsole />
+          </div>
+        </section>
 
-        <section className="grid gap-6 rounded-3xl border border-white/10 bg-white/5 p-6 lg:grid-cols-2">
+        <section className="grid gap-6 rounded-3xl border border-white/15 bg-white/5 p-6 lg:grid-cols-2">
           <div className="space-y-3">
-            <p className="text-sm font-semibold uppercase tracking-wide text-emerald-200">Flow Realtime (live)</p>
-            <p className="text-sm text-slate-300">
+            <p className="text-sm font-semibold uppercase tracking-wide text-pink-200">Flow Realtime (live)</p>
+            <p className="text-sm text-slate-200">
               Idéal pour co-animer un entretien Helios et capturer les verbatims instantanément. L’agent côté navigateur
               ouvre un token de session, puis pousse micro + chat au modèle.
             </p>
-            <ol className="space-y-2 text-sm text-slate-200">
-              <li>1. Côté backend, `POST /v1/realtime/sessions` avec `model: gpt-realtime`.</li>
+            <ol className="space-y-2 text-sm text-slate-300">
+              <li>1. Backend : `POST /v1/realtime/sessions` avec `model: gpt-realtime`.</li>
               <li>2. Le client reçoit un `client_secret` temporaire (TTL ∼1 min).</li>
-              <li>3. Connexion via WebRTC ou WebSocket → streaming texte+audio.</li>
-              <li>4. Helios peut continuer à remplir `StructuredNeed` en parallèle grâce au transcript.</li>
+              <li>3. Connexion WebRTC/WebSocket → streaming texte + audio.</li>
+              <li>4. Helios alimente `StructuredNeed` à partir du transcript.</li>
             </ol>
           </div>
           <div className="space-y-4">
             {realtimeOptions.map((option) => (
-              <div key={option.id} className="rounded-2xl border border-white/10 bg-white/10 p-4">
+              <div
+                key={option.id}
+                className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-transparent p-4 backdrop-blur"
+              >
                 <p className="text-lg font-semibold text-white">{option.title}</p>
                 <p className="text-sm text-slate-200">{option.description}</p>
                 <dl className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-300">
@@ -83,8 +91,8 @@ export default function RealtimePage() {
                     <dd>{option.payload}</dd>
                   </div>
                 </dl>
-                <p className="mt-3 text-xs uppercase tracking-wide text-emerald-200">Capacités</p>
-                <ul className="mt-1 list-disc space-y-1 pl-4 text-sm text-slate-200">
+                <p className="mt-3 text-xs uppercase tracking-wide text-cyan-200">Capacités</p>
+                <ul className="mt-1 list-disc space-y-1 pl-4 text-sm text-slate-100 marker:text-pink-400">
                   {option.actions.map((action) => (
                     <li key={action}>{action}</li>
                   ))}
@@ -94,19 +102,19 @@ export default function RealtimePage() {
           </div>
         </section>
 
-        <section className="grid gap-6 rounded-3xl border border-white/10 bg-white/5 p-6 lg:grid-cols-3">
+        <section className="grid gap-6 rounded-3xl border border-white/15 bg-white/5 p-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <p className="text-sm font-semibold uppercase tracking-wide text-emerald-200">Flow Audio</p>
-            <p className="text-sm text-slate-300">
+            <p className="text-sm font-semibold uppercase tracking-wide text-pink-200">Flow Audio</p>
+            <p className="text-sm text-slate-200">
               Utilise la même API que le chat Helios, avec{" "}
-              <code className="rounded bg-white/10 px-1 font-mono text-xs text-emerald-200">
+              <code className="rounded bg-white/10 px-1 font-mono text-xs text-pink-200">
                 modalities: [&quot;text&quot;, &quot;audio&quot;]
               </code>{" "}
               et{" "}
-              <code className="rounded bg-white/10 px-1 font-mono text-xs text-emerald-200">audio.voice</code>. Permet
+              <code className="rounded bg-white/10 px-1 font-mono text-xs text-pink-200">audio.voice</code>. Permet
               d’envoyer la synthèse vers Teams ou de créer des assistants voix pour les événements terrain.
             </p>
-            <pre className="mt-4 overflow-x-auto rounded-2xl bg-black/50 p-4 text-xs text-emerald-200">
+            <pre className="mt-4 overflow-x-auto rounded-2xl border border-white/10 bg-black/60 p-4 text-xs text-pink-200">
 {`await openai.chat.completions.create({
   model: "gpt-audio",
   modalities: ["text", "audio"],
@@ -120,7 +128,10 @@ export default function RealtimePage() {
           </div>
           <div className="space-y-4">
             {audioOptions.map((option) => (
-              <div key={option.id} className="rounded-2xl border border-white/10 bg-white/10 p-4">
+              <div
+                key={option.id}
+                className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-transparent p-4 backdrop-blur"
+              >
                 <p className="text-lg font-semibold text-white">{option.title}</p>
                 <p className="text-sm text-slate-200">{option.description}</p>
               </div>
@@ -128,14 +139,13 @@ export default function RealtimePage() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-emerald-300/30 bg-emerald-500/10 p-6 text-emerald-100">
+        <section className="rounded-3xl border border-white/15 bg-gradient-to-r from-[#1d1b2f]/70 via-[#0f0b1c]/80 to-[#1d1427]/60 p-6">
           <h2 className="text-2xl font-semibold text-white">Roadmap d’intégration</h2>
-          <ul className="mt-4 list-disc space-y-2 pl-5 text-sm">
-            <li>Phase pilote : brancher gpt-realtime sur un atelier interne (lien invite Teams + Helios live).</li>
+          <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-slate-200 marker:text-pink-400">
+            <li>Phase pilote : brancher gpt-realtime sur un atelier interne (lien Teams + Helios live).</li>
             <li>Phase audio : diffuser automatiquement les synthèses Helios (gpt-audio-mini) après chaque entretien.</li>
             <li>
-              Phase avancée : combiner transcription Realtime + `StructuredNeed` pour préremplir les fiches MDM sans
-              saisie.
+              Phase avancée : combiner transcription Realtime + `StructuredNeed` pour préremplir les fiches MDM sans saisie.
             </li>
           </ul>
         </section>

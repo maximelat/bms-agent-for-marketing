@@ -123,8 +123,10 @@ export const QuestionnaireAgent = () => {
   const [approvals, setApprovals] = useState("");
   const [changePlan, setChangePlan] = useState("");
   const [summaryNote, setSummaryNote] = useState("");
+  const [recipientEmail, setRecipientEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "saving" | "done" | "error">("idle");
   const [feedback, setFeedback] = useState("");
+  const emailIsValid = /\S+@\S+\.\S+/.test(recipientEmail.trim());
 
   const structuredNeed = useMemo<StructuredNeed>(() => {
     return {
@@ -253,38 +255,46 @@ export const QuestionnaireAgent = () => {
     });
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setStatus("saving");
-    setFeedback("");
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
 
-    try {
-      const response = await fetch("/api/finalize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          structuredNeed,
-          transcript: [
-            {
-              role: "assistant",
-              content: "Questionnaire Helios complété (mode formulaire).",
-            },
-          ],
-        }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error ?? "Échec de l'envoi");
+      if (!emailIsValid) {
+        setStatus("error");
+        setFeedback("Adresse email invalide ou manquante.");
+        return;
       }
-      setStatus("done");
-      setFeedback("Fiche envoyée vers le webhook n8n.");
-    } catch (error) {
-      console.error(error);
-      setStatus("error");
-      setFeedback("Impossible d'envoyer la fiche. Vérifiez la connexion.");
-    }
-  };
+
+      setStatus("saving");
+      setFeedback("");
+
+      try {
+        const response = await fetch("/api/finalize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            structuredNeed,
+            transcript: [
+              {
+                role: "assistant",
+                content: "Questionnaire Helios complété (mode formulaire).",
+              },
+            ],
+            recipientEmail: recipientEmail.trim(),
+          }),
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error ?? "Échec de l'envoi");
+        }
+        setStatus("done");
+        setFeedback("Fiche envoyée vers le webhook n8n.");
+      } catch (error) {
+        console.error(error);
+        setStatus("error");
+        setFeedback("Impossible d'envoyer la fiche. Vérifiez la connexion.");
+      }
+    };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
@@ -977,34 +987,49 @@ export const QuestionnaireAgent = () => {
             onChange={(event) => setSummaryNote(event.target.value)}
           />
         </label>
-      </section>
+        </section>
 
-      <div className="flex flex-col gap-3 rounded-3xl border border-zinc-200 bg-white/80 p-6 shadow-sm">
-        <button
-          type="submit"
-          disabled={status === "saving"}
-          className={cn(
-            "flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition",
-            status === "saving" ? "opacity-70" : "hover:bg-emerald-700",
+        <div className="flex flex-col gap-4 rounded-3xl border border-zinc-200 bg-white/80 p-6 shadow-sm">
+          <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+            Email destinataire (webhook n8n)
+            <input
+              type="email"
+              className="mt-1 w-full rounded-2xl border border-zinc-200 px-4 py-2 text-sm outline-none focus:border-pink-400"
+              placeholder="prenom.nom@bms.com"
+              value={recipientEmail}
+              onChange={(event) => setRecipientEmail(event.target.value)}
+              required
+            />
+          </label>
+          {!emailIsValid && recipientEmail.length > 0 && (
+            <p className="text-xs text-rose-500">Merci de saisir une adresse email valide avant l’envoi.</p>
           )}
-        >
-          {status === "saving" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-          Envoyer la fiche structurée
-        </button>
-        {feedback && (
-          <div
+          <button
+            type="submit"
+            disabled={status === "saving" || !emailIsValid}
             className={cn(
-              "flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm",
-              status === "done"
-                ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                : "border-rose-200 bg-rose-50 text-rose-800",
+              "flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition",
+              status === "saving" ? "opacity-70" : "hover:bg-emerald-700",
+              !emailIsValid && "opacity-60",
             )}
           >
-            {status === "done" ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-            {feedback}
-          </div>
-        )}
-      </div>
+            {status === "saving" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+            Envoyer la fiche structurée
+          </button>
+          {feedback && (
+            <div
+              className={cn(
+                "flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm",
+                status === "done"
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                  : "border-rose-200 bg-rose-50 text-rose-800",
+              )}
+            >
+              {status === "done" ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+              {feedback}
+            </div>
+          )}
+        </div>
     </form>
   );
 };
