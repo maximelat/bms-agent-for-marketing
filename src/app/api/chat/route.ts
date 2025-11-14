@@ -98,7 +98,7 @@ export async function POST(request: Request) {
     const conversationMessages = parsed.data.messages.map((message, index) => {
       if (message.role === "assistant") {
         const assistantMessage: ResponseOutputMessage = {
-          id: `assistant-${index}-${randomUUID()}`,
+          id: `msg_${index}_${randomUUID()}`,
           role: "assistant",
           status: "completed",
           type: "message",
