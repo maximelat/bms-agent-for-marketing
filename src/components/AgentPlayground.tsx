@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Send, Loader2, Sparkles, Copy } from "lucide-react";
+import { useMemo, useState, useRef } from "react";
+import { Send, Loader2, Sparkles, Copy, Mic } from "lucide-react";
 import { defaultStructuredNeed, StructuredNeed } from "@/lib/structuredNeed";
 import { AgentPhase } from "@/lib/agentPrompt";
 import { mergeStructuredNeed } from "@/lib/mergeStructuredNeed";
@@ -17,8 +17,8 @@ const phaseLabels: Record<AgentPhase, string> = {
   contexte: "Découverte",
   "pain-points": "Douleurs",
   donnees: "Cartographie données",
-  copilot: "Idées Copilot",
-  "automation-avancee": "Cas idéaux",
+  "copilot-lite": "Agents Copilot M365 Lite",
+  "mon-ideal": "Mon idéal",
   normalisation: "Normalisation",
 };
 
@@ -39,6 +39,9 @@ export const AgentPlayground = () => {
   const [agentVersion, setAgentVersion] = useState<"v1" | "v2">("v1");
   const [recipientEmail, setRecipientEmail] = useState("");
   const [previousResponseId, setPreviousResponseId] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   const canFinalize = status === "ready" && structuredNeed.copilotOpportunities.length > 0;
   const emailIsValid = /\S+@\S+\.\S+/.test(recipientEmail.trim());
@@ -114,6 +117,57 @@ export const AgentPlayground = () => {
       setPreviousResponseId(null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleRecording = async () => {
+    if (isRecording) {
+      mediaRecorderRef.current?.stop();
+      setIsRecording(false);
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const formData = new FormData();
+        formData.append("audio", audioBlob, "recording.webm");
+
+        try {
+          const response = await fetch("/api/transcribe", {
+            method: "POST",
+            body: formData,
+          });
+          const data = await response.json();
+          if (response.ok && data.text) {
+            setInput((prev) => prev + (prev ? " " : "") + data.text);
+          } else {
+            setFeedback("Impossible de transcrire l'audio.");
+          }
+        } catch (error) {
+          console.error(error);
+          setFeedback("Erreur lors de la transcription.");
+        }
+
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      recorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error(error);
+      setFeedback("Impossible d'accéder au micro.");
     }
   };
 
@@ -222,6 +276,18 @@ export const AgentPlayground = () => {
                 }
               }}
             />
+            <button
+              type="button"
+              className={cn(
+                "mb-1 rounded-2xl p-3 text-white transition disabled:opacity-50",
+                isRecording ? "bg-red-600 hover:bg-red-700 animate-pulse" : "bg-zinc-600 hover:bg-zinc-700",
+              )}
+              onClick={toggleRecording}
+              disabled={loading}
+              title={isRecording ? "Arrêter l'enregistrement" : "Dicter (Whisper)"}
+            >
+              <Mic className="h-5 w-5" />
+            </button>
             <button
               className="mb-1 rounded-2xl bg-emerald-600 p-3 text-white transition hover:bg-emerald-700 disabled:opacity-50"
               disabled={!input.trim() || loading}

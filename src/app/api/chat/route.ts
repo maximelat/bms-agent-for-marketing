@@ -38,10 +38,11 @@ const selectModelForPhase = (phase?: AgentPhase) => {
     );
   }
 
+  // Toutes les autres phases utilisent un modèle rapide sans reasoning
   return (
     process.env.OPENAI_MODEL_FAST ??
     process.env.OPENAI_MODEL ??
-    "gpt-5-nano"
+    "gpt-4o-mini"
   );
 };
 

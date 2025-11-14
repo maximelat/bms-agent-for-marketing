@@ -14,7 +14,7 @@ export async function POST() {
   const model =
     process.env.OPENAI_REALTIME_MODEL ??
     process.env.OPENAI_MODEL_REALTIME ??
-    "gpt-realtime-mini";
+    "gpt-realtime";
 
   try {
     const response = await fetch(REALTIME_ENDPOINT, {
