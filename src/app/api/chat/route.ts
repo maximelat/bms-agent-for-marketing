@@ -131,7 +131,7 @@ export async function POST(request: Request) {
       const completion = await openai.responses.create({
         model,
         ...(reasoning ? { reasoning } : {}),
-        ...(parsed.data.previousResponseId
+        ...(parsed.data.previousResponseId?.startsWith("resp_")
           ? { previous_response_id: parsed.data.previousResponseId }
           : {}),
         input,
