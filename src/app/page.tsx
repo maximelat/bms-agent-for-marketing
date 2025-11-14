@@ -23,7 +23,7 @@ export default function Home() {
             <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-[#4B4B5F]">
               <li>Exploration métier et irritants quantifiés.</li>
               <li>Cartographie des données (origine, volume, fréquence, confidentialité).</li>
-              <li>Projection dans Agent Copilot Lite + scénarios d’automatisations avancées.</li>
+              <li>Projection dans Agent Copilot  + scénarios d’automatisations avancées.</li>
             </ul>
           </div>
           <div>
