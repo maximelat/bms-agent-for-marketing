@@ -41,6 +41,19 @@ export default function Home() {
               <li>SMTP_* + EMAIL_FROM si envoi email requis.</li>
             </ul>
           </div>
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">Autres modalités</p>
+            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-zinc-600">
+              <li>
+                Variante Realtime & audio (gpt-realtime / gpt-audio) disponible{" "}
+                <a href="/realtime" className="text-emerald-600 underline underline-offset-4">
+                  via cette page dédiée
+                </a>
+                .
+              </li>
+              <li>Compatibilité future avec kiosques vocaux ou ateliers collectifs.</li>
+            </ul>
+          </div>
         </section>
 
         <AgentPlayground />

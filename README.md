@@ -22,9 +22,9 @@ npm run dev          # http://localhost:3000
 | --- | ----------- |
 | `OPENAI_API_KEY` | requis, clef OpenAI utilisée par l’agent |
 | `OPENAI_MODEL` | modèle par défaut si aucun profil spécifique n’est fourni |
-| `OPENAI_MODEL_FAST` | modèle rapide (intro/contexte), sinon `gpt-4o-mini` |
-| `OPENAI_MODEL_BALANCED` | modèle équilibré (exploration/pain points), sinon `gpt-4.1-mini` |
-| `OPENAI_MODEL_PREMIUM` | modèle premium (normalisation finale), sinon `gpt-4.1` |
+| `OPENAI_MODEL_FAST` | modèle rapide (intro/contexte), défaut `gpt-5-nano` |
+| `OPENAI_MODEL_BALANCED` | modèle équilibré (exploration/pain points), défaut `gpt-5-mini` |
+| `OPENAI_MODEL_PREMIUM` | modèle premium (normalisation finale), défaut `gpt-5.1` |
 | `N8N_WEBHOOK_URL` | optionnel, webhook cible (défaut : URL fournie par Maxim) |
 
 ## Déploiement
@@ -46,7 +46,7 @@ Secrets requis côté repo GitHub:
 | secret | usage |
 | --- | --- |
 | `OPENAI_API_KEY` (+ optionnel `OPENAI_MODEL*`) | build côté CI |
-| `FTP_SERVER` | adresse OVH (ex. `ftp.latry.consulting`) |
+| `OVH_ADRESSE` | adresse FTP OVH (ex. `ftp.latry.consulting`) |
 | `FTP_LOGIN` / `FTP_PASSWORD` | identifiants FTP |
 | `FTP_TARGET_DIR` | répertoire distant, ex. `/www/projet/bms/agentic-needs/` |
 
@@ -56,6 +56,10 @@ Une fois remplis, chaque push sur `main` reconstruit et synchronise le site auto
 
 L’API `/api/finalize` publie automatiquement le JSON sur `https://n8n-byhww-u43341.vm.elestio.app/webhook/b9b80ad2-991f-419b-bfaf-7d8faca3de72`.  
 Vous pouvez remplacer cette valeur via `N8N_WEBHOOK_URL` pour pointer vers une autre automatisation (Google Sheets, SharePoint, etc.).
+
+## Modalités Realtime / Audio
+
+Une page dédiée `/realtime` décrit les scénarios gpt-realtime / gpt-audio (sessions WebRTC ou réponses audio) afin de préparer les déclinaisons live d’Helios.
 
 ## Stack
 

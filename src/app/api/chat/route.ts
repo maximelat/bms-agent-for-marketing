@@ -30,7 +30,7 @@ const selectModelForPhase = (phase?: AgentPhase) => {
       return (
         process.env.OPENAI_MODEL_FAST ??
         process.env.OPENAI_MODEL ??
-        "gpt-4o-mini"
+        "gpt-5-nano"
       );
     case "pain-points":
     case "donnees":
@@ -39,16 +39,16 @@ const selectModelForPhase = (phase?: AgentPhase) => {
       return (
         process.env.OPENAI_MODEL_BALANCED ??
         process.env.OPENAI_MODEL ??
-        "gpt-4.1-mini"
+        "gpt-5-mini"
       );
     case "normalisation":
       return (
         process.env.OPENAI_MODEL_PREMIUM ??
         process.env.OPENAI_MODEL ??
-        "gpt-4.1"
+        "gpt-5.1"
       );
     default:
-      return process.env.OPENAI_MODEL ?? "gpt-4o-mini";
+      return process.env.OPENAI_MODEL ?? "gpt-5-mini";
   }
 };
 
