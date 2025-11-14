@@ -75,23 +75,35 @@ export async function POST(request: Request) {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await openai.responses.create({
       model: selectModelForPhase(parsed.data.phase),
-      temperature: 0.2,
+      reasoning: { effort: "none" },
       response_format: { type: "json_object" },
-      messages: [
+      input: [
         {
           role: "system",
-          content:
-            parsed.data.agentVersion === "v2"
-              ? buildSystemPromptV2()
-              : buildSystemPrompt(),
+          content: [
+            {
+              type: "text",
+              text:
+                parsed.data.agentVersion === "v2"
+                  ? buildSystemPromptV2()
+                  : buildSystemPrompt(),
+            },
+          ],
         },
-        ...parsed.data.messages,
+        ...parsed.data.messages.map((message) => ({
+          role: message.role,
+          content: [{ type: "text", text: message.content }],
+        })),
       ],
     });
 
-    const raw = completion.choices[0]?.message?.content ?? "{}";
+    const raw =
+      (completion.output ?? [])
+        .flatMap((item: any) => item.content ?? [])
+        .find((contentItem: any) => contentItem.type === "output_text")?.text ??
+      "{}";
     const asJson = JSON.parse(raw);
     const agent = agentResponseSchema.parse(asJson);
 
