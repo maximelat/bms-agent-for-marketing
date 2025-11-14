@@ -28,10 +28,8 @@ export async function POST() {
         model,
         voice: "alloy",
         modalities: ["text", "audio"],
-        conversation: {
-          instructions:
-            "Tu es Helios, facilite un entretien Copilot BMS. Reste synthétique (≤45 secondes).",
-        },
+        instructions:
+          "Tu es Helios, facilite un entretien Copilot BMS. Reste synthétique (≤45 secondes).",
       }),
     });
 
