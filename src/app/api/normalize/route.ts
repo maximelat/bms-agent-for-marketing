@@ -44,29 +44,26 @@ export async function POST(request: Request) {
   try {
     const systemPrompt = `
 Tu es un agent de normalisation pour les entretiens Copilot BMS.
-À partir de la transcription complète et des données déjà collectées, ta mission est de :
+À partir de la transcription et des données collectées, complète le canevas use case.
 
-1. Valider que tous les éléments du canevas use case sont complets :
-   - Problem to solve (basé sur les pain points)
-   - Use case description (basé sur les opportunités Copilot décrites)
-   - Data & product used (sources identifiées + outils M365)
-   - Business objective (objectifs métier chiffrés)
-   - Key results (métriques de succès attendues)
-   - Stakeholders (rôles impliqués, propriétaires)
-   - Strategic fit (importance, fréquence, rationale)
+IMPORTANT : produis un JSON valide strict. Évite les sauts de ligne dans les strings, échappe les guillemets.
 
-2. Compléter les champs manquants ou ambigus en extrapolant intelligemment depuis la conversation.
-
-3. Générer un résumé exécutif (2-3 paragraphes) qui synthétise le besoin, les opportunités et le strategic fit.
-
-Sortie attendue (JSON strict) :
+Sortie attendue (JSON strict, une seule ligne par valeur) :
 {
   "normalizedUpdate": {
-    ... champs StructuredNeed complétés/corrigés pour remplir le canevas use case ...
+    "expectedOutcomes": { "successKPIs": ["KPI1", "KPI2"] },
+    "strategicFit": { "importance": "high", "frequency": "medium", "rationale": "courte phrase" },
+    "nextSteps": ["step1", "step2"]
   },
-  "summary": "résumé exécutif du use case en 2-3 paragraphes",
-  "isComplete": true si tous les champs du canevas sont remplis, false sinon
+  "summary": "Resume court sans guillemets ni retours ligne.",
+  "isComplete": true
 }
+
+Règles strictes :
+- Toutes les valeurs string sur UNE seule ligne
+- Pas de guillemets non échappés
+- Pas de sauts de ligne dans les valeurs
+- Maximum 100 caractères par string
 `;
 
     const transcriptText = parsed.data.transcript
@@ -123,8 +120,28 @@ Sortie attendue (JSON strict) :
     }
 
     const raw = completion.choices[0]?.message?.content ?? "{}";
-    const cleaned = raw.trim().replace(/^```json\s*/i, "").replace(/\s*```$/i, "");
-    const result = agentResponseSchema.parse(JSON.parse(cleaned));
+    
+    // Nettoyage agressif pour éviter JSON malformé
+    let cleaned = raw.trim()
+      .replace(/^```json\s*/i, "")
+      .replace(/\s*```$/i, "")
+      .replace(/\n/g, " ")           // Enlever tous les sauts de ligne
+      .replace(/\r/g, " ")           // Enlever retours chariot
+      .replace(/\t/g, " ")           // Enlever tabs
+      .replace(/\s{2,}/g, " ");      // Réduire espaces multiples
+    
+    let result;
+    try {
+      result = agentResponseSchema.parse(JSON.parse(cleaned));
+    } catch (parseError) {
+      console.error("JSON parse error, raw:", raw.substring(0, 500));
+      // Fallback : retourner les données existantes
+      return NextResponse.json({
+        normalizedNeed: parsed.data.structuredNeed,
+        summary: "Normalisation échouée (JSON malformé)",
+        isComplete: false,
+      });
+    }
 
     const normalizedNeed = mergeStructuredNeed(
       parsed.data.structuredNeed,
