@@ -347,18 +347,33 @@ export const AgentPlayground = () => {
             )}
           </div>
           <button
-            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-600 px-4 py-3 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:border-zinc-200 disabled:text-zinc-400"
+            type="button"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:bg-zinc-200 disabled:text-zinc-400"
             disabled={!canSendSummary || finalizing}
             onClick={finalize}
           >
             {finalizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Générer la matrice & envoyer le compte-rendu
+            Envoyer le compte-rendu
           </button>
         </div>
       </section>
 
       <div className="space-y-6 lg:h-full lg:overflow-y-auto lg:pr-2">
-        <SummaryPanel key={`summary-${messages.length}`} data={structuredNeed} phase={phaseLabels[phase]} />
+        <SummaryPanel
+          key={`summary-${messages.length}`}
+          data={structuredNeed}
+          phase={phaseLabels[phase]}
+          onUpdateFit={(importance, frequency) => {
+            setStructuredNeed((prev) => ({
+              ...prev,
+              strategicFit: {
+                ...prev.strategicFit,
+                importance,
+                frequency,
+              },
+            }));
+          }}
+        />
 
         <div className="space-y-3 rounded-2xl border border-zinc-200 bg-white/80 p-5 shadow-sm">
           <div className="flex items-center justify-between">
