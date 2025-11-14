@@ -73,8 +73,9 @@ Sortie attendue (JSON strict) :
       .map((m) => `${m.role === "assistant" ? "Helios" : "Utilisateur"}: ${m.content}`)
       .join("\n\n");
 
-    const model = process.env.OPENAI_MODEL_PREMIUM || "gpt-5.1";
-    const isReasoningModel = ["gpt-5", "o3", "o1"].some((rm) => model.includes(rm));
+    // Utiliser gpt-4o-mini pour la normalisation (plus rapide, évite timeout)
+    const model = "gpt-4o-mini";
+    const isReasoningModel = false;
 
     let completion;
     if (isReasoningModel) {
