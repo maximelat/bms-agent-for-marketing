@@ -73,17 +73,48 @@ Sortie attendue (JSON strict) :
       .map((m) => `${m.role === "assistant" ? "Helios" : "Utilisateur"}: ${m.content}`)
       .join("\n\n");
 
-    const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL_PREMIUM || "gpt-5.1",
-      messages: [
-        { role: "system", content: systemPrompt },
-        {
-          role: "user",
-          content: `Voici la transcription complète de l'entretien :\n\n${transcriptText}\n\nDonnées déjà collectées :\n${JSON.stringify(parsed.data.structuredNeed, null, 2)}\n\nNormalise ce use case et complète les champs manquants.`,
-        },
-      ],
-      response_format: { type: "json_object" },
-    });
+    const model = process.env.OPENAI_MODEL_PREMIUM || "gpt-5.1";
+    const isReasoningModel = ["gpt-5", "o3", "o1"].some((rm) => model.includes(rm));
+
+    let completion;
+    if (isReasoningModel) {
+      // Utiliser Responses API pour les modèles reasoning
+      const responsesCompletion = await openai.responses.create({
+        model,
+        reasoning: { effort: "medium" },
+        input: [
+          { role: "system", content: [{ type: "input_text", text: systemPrompt }] },
+          {
+            role: "user",
+            content: [
+              {
+                type: "input_text",
+                text: `Voici la transcription complète de l'entretien :\n\n${transcriptText}\n\nDonnées déjà collectées :\n${JSON.stringify(parsed.data.structuredNeed, null, 2)}\n\nNormalise ce use case et complète les champs manquants.`,
+              },
+            ],
+          },
+        ],
+      });
+      
+      const rawText =
+        (responsesCompletion.output ?? [])
+          .flatMap((item: any) => item.content ?? [])
+          .find((contentItem: any) => contentItem.type === "output_text")?.text ?? "{}";
+      completion = { choices: [{ message: { content: rawText } }] };
+    } else {
+      // Chat Completions pour les autres modèles
+      completion = await openai.chat.completions.create({
+        model,
+        messages: [
+          { role: "system", content: systemPrompt },
+          {
+            role: "user",
+            content: `Voici la transcription complète de l'entretien :\n\n${transcriptText}\n\nDonnées déjà collectées :\n${JSON.stringify(parsed.data.structuredNeed, null, 2)}\n\nNormalise ce use case et complète les champs manquants.`,
+          },
+        ],
+        response_format: { type: "json_object" },
+      });
+    }
 
     const raw = completion.choices[0]?.message?.content ?? "{}";
     const cleaned = raw.trim().replace(/^```json\s*/i, "").replace(/\s*```$/i, "");

@@ -361,6 +361,12 @@ export const AgentPlayground = () => {
       </section>
 
       <div className="space-y-6 lg:h-full lg:overflow-y-auto lg:pr-2">
+        <SummaryPanel
+          key={`summary-${messages.length}`}
+          data={structuredNeed}
+          phase={phaseLabels[phase]}
+        />
+        
         <CanvasCard
           canvas={useMemo(() => convertToCanvas(structuredNeed, recipientEmail || "preview"), [structuredNeed, recipientEmail])}
           isPreview
@@ -374,12 +380,6 @@ export const AgentPlayground = () => {
               },
             }));
           }}
-        />
-        
-        <SummaryPanel
-          key={`summary-${messages.length}`}
-          data={structuredNeed}
-          phase={phaseLabels[phase]}
         />
 
         <div className="space-y-3 rounded-2xl border border-zinc-200 bg-white/80 p-5 shadow-sm">
