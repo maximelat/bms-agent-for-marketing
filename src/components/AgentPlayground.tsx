@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Send, Loader2, Sparkles } from "lucide-react";
+import { Send, Loader2, Sparkles, Copy } from "lucide-react";
 import { defaultStructuredNeed, StructuredNeed } from "@/lib/structuredNeed";
 import { AgentPhase } from "@/lib/agentPrompt";
 import { mergeStructuredNeed } from "@/lib/mergeStructuredNeed";
@@ -48,6 +48,23 @@ export const AgentPlayground = () => {
     () => messages.map((m) => ({ role: m.role, content: m.content })),
     [messages],
   );
+  const transcriptText = useMemo(
+    () =>
+      transcriptPayload
+        .map((m, idx) => `${idx + 1}. ${m.role === "assistant" ? "Helios" : "Vous"} · ${m.content}`)
+        .join("\n"),
+    [transcriptPayload],
+  );
+  const copyTranscript = async () => {
+    if (!transcriptText) return;
+    try {
+      await navigator.clipboard.writeText(transcriptText);
+      setFeedback("Transcription copiée.");
+    } catch (error) {
+      console.error(error);
+      setFeedback("Impossible de copier la transcription.");
+    }
+  };
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
@@ -241,7 +258,47 @@ export const AgentPlayground = () => {
         </div>
       </section>
 
-      <SummaryPanel data={structuredNeed} phase={phaseLabels[phase]} />
+      <div className="space-y-6">
+        <SummaryPanel data={structuredNeed} phase={phaseLabels[phase]} />
+
+        <div className="space-y-3 rounded-2xl border border-zinc-200 bg-white/80 p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-emerald-600">Transcription</p>
+              <h3 className="text-lg font-semibold text-zinc-900">Fil de discussion</h3>
+            </div>
+            <button
+              type="button"
+              onClick={copyTranscript}
+              disabled={!transcriptPayload.length}
+              className="inline-flex items-center gap-2 rounded-full border border-zinc-200 px-3 py-1 text-sm text-zinc-700 transition hover:border-emerald-500 hover:text-emerald-600 disabled:opacity-40"
+            >
+              <Copy className="h-4 w-4" />
+              Copier
+            </button>
+          </div>
+          <p className="text-xs text-zinc-500">
+            Partagez ce fil si un participant rejoint en cours de route ou pour préparer la phase de normalisation.
+          </p>
+          <div className="h-48 overflow-y-auto rounded-xl border border-zinc-200 bg-white/90 p-3 text-sm text-zinc-700">
+            {transcriptPayload.length === 0 ? (
+              <p className="text-zinc-400">La transcription apparaîtra après vos premiers échanges.</p>
+            ) : (
+              <ul className="space-y-2">
+                {transcriptPayload.map((entry, index) => (
+                  <li key={`${entry.role}-${index}`}>
+                    <span className="font-semibold text-emerald-700">
+                      {entry.role === "assistant" ? "Helios" : "Vous"}
+                    </span>
+                    <span className="text-zinc-400"> · </span>
+                    <span>{entry.content}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

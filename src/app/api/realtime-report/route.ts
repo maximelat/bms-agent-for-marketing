@@ -1,49 +1,29 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { z } from "zod";
-import { randomUUID } from "crypto";
 import type {
-  ResponseInput,
   EasyInputMessage,
+  ResponseInput,
   ResponseOutputMessage,
 } from "openai/resources/responses/responses";
+
 import {
   buildSystemPrompt,
   buildSystemPromptV2,
-  AGENT_PHASES,
-  type AgentPhase,
 } from "@/lib/agentPrompt";
 import { agentResponseSchema } from "@/lib/agentResponseSchema";
+import { defaultStructuredNeed } from "@/lib/structuredNeed";
+import { mergeStructuredNeed } from "@/lib/mergeStructuredNeed";
 
 const requestSchema = z.object({
-  messages: z.array(
+  transcript: z.array(
     z.object({
       role: z.enum(["user", "assistant"]),
       content: z.string(),
     }),
   ),
-  phase: z.enum(AGENT_PHASES).optional(),
   agentVersion: z.enum(["v1", "v2"]).optional(),
-  previousResponseId: z.string().optional(),
 });
-
-type IncomingMessage = z.infer<typeof requestSchema>["messages"][number];
-
-const selectModelForPhase = (phase?: AgentPhase) => {
-  if (phase === "normalisation") {
-    return (
-      process.env.OPENAI_MODEL_PREMIUM ??
-      process.env.OPENAI_MODEL ??
-      "gpt-5.1"
-    );
-  }
-
-  return (
-    process.env.OPENAI_MODEL_FAST ??
-    process.env.OPENAI_MODEL ??
-    "gpt-5-nano"
-  );
-};
 
 export async function POST(request: Request) {
   if (!process.env.OPENAI_API_KEY) {
@@ -79,45 +59,41 @@ export async function POST(request: Request) {
       ],
     };
 
-    const conversationMessages = parsed.data.messages.map((message: IncomingMessage, index: number) => {
-      if (message.role === "assistant") {
-        const assistantMessage: ResponseOutputMessage = {
-          id: `msg_${index}_${randomUUID()}`,
-          role: "assistant",
-          status: "completed",
-          type: "message",
-          content: [
-            {
-              type: "output_text",
-              text: message.content,
-              annotations: [],
-            },
-          ],
-        };
-        return assistantMessage;
-      }
+    const conversationMessages = parsed.data.transcript.map(
+      (message, index) => {
+        if (message.role === "assistant") {
+          const assistantMessage: ResponseOutputMessage = {
+            id: `msg_recap_${index}`,
+            role: "assistant",
+            status: "completed",
+            type: "message",
+            content: [
+              {
+                type: "output_text",
+                text: message.content,
+                annotations: [],
+              },
+            ],
+          };
+          return assistantMessage;
+        }
 
-      const userMessage: EasyInputMessage = {
-        role: message.role,
-        content: [{ type: "input_text", text: message.content }],
-      };
-      return userMessage;
-    });
+        const userMessage: EasyInputMessage = {
+          role: "user",
+          content: [{ type: "input_text", text: message.content }],
+        };
+        return userMessage;
+      },
+    );
 
     const input: ResponseInput = [systemMessage, ...conversationMessages];
 
-    const model = selectModelForPhase(parsed.data.phase);
-    const reasoning =
-      typeof model === "string" && model.includes("5.1")
-        ? { effort: "none" as const }
-        : undefined;
-
     const completion = await openai.responses.create({
-      model,
-      ...(reasoning ? { reasoning } : {}),
-      ...(parsed.data.previousResponseId
-        ? { previous_response_id: parsed.data.previousResponseId }
-        : {}),
+      model:
+        process.env.OPENAI_MODEL_PREMIUM ??
+        process.env.OPENAI_MODEL ??
+        "gpt-5.1",
+      reasoning: { effort: "none" },
       input,
     });
 
@@ -128,17 +104,23 @@ export async function POST(request: Request) {
       "{}";
     const asJson = JSON.parse(raw);
     const agent = agentResponseSchema.parse(asJson);
+    const report = mergeStructuredNeed(
+      defaultStructuredNeed,
+      agent.normalizedUpdate,
+    );
 
     return NextResponse.json({
-      ...agent,
-      responseId: completion.id,
+      report,
+      agent,
+      completionId: completion.id,
     });
   } catch (error) {
-    console.error("chat route error", error);
+    console.error("realtime report error", error);
     return NextResponse.json(
-      { error: "Impossible d'interroger OpenAI." },
+      { error: "Impossible de générer le rapport realtime." },
       { status: 500 },
     );
   }
 }
+
 
