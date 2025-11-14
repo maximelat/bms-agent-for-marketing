@@ -1,61 +1,84 @@
-# BMS – Agentic Needs Interview (M365 Copilot)
+## BMS · Copilot Agentic Needs
 
-Petit site d’entretien guidé avec un agent (OpenAI) pour collecter des besoins de création d’agents M365 Copilot, produire un résumé normé, l’envoyer par email et pousser un payload structuré vers un webhook n8n.
+Portail d’entretien guidé permettant de:
 
-## Structure
+- conduire un recueil normé des besoins Copilot M365 auprès des chefs de produits marketing BMS ;
+- structurer les données en objet `StructuredNeed` (JSON) ;
+- calculer une matrice Strategic Fit (Importance x Fréquence) ;
+- pousser automatiquement le résultat vers un webhook n8n pour archivage (ex. Google Sheet).
 
-```
-agentic-needs/
-  index.html
-  style.css
-  app.js
-  api.php
-  config.php.example
-  utils.php
-  deploy-ftp.sh
-```
+L’agent “Helios” s’appuie sur OpenAI et orchestre plusieurs modèles : rapide pour la mise en contexte, plus intelligent pour l’exploration, et un modèle premium pour la normalisation finale.
 
-## Configuration
+## Agents disponibles
 
-1) Copiez `config.php.example` en `config.php`, puis renseignez:
-- `OPENAI_API_KEY`
-- `N8N_WEBHOOK_URL` (déjà pointé vers votre URL)
-- `NOTIFY_EMAIL` (par défaut: maximelat@gmail.com)
+- **Helios v1 (chat guidé)** : parcours conversationnel classique, parfait pour des entretiens live rapides.
+- **Helios v2 (chat aligné sur le questionnaire)** : mêmes étapes que le formulaire Google (rituels, signaux d’alerte, strategic fit requis). Sélection possible directement dans l’interface (toggle “Helios v1 / v2”).
+- **Modo Realtime & audio** : page `/realtime`, streaming voix + texte.
+- **Agent formulaire** : page `/questionnaire`, saisie de la trame complète en mode asynchrone.
 
-2) Optionnel: utilisez des variables d’environnement serveur si vous préférez:
-- `OPENAI_API_KEY`
-- `N8N_WEBHOOK_URL`
-- `NOTIFY_EMAIL`
+## Démarrage local
 
-## Lancement en local
-
-- Un serveur PHP suffit:
 ```bash
-php -S 127.0.0.1:8080 -t .
-```
-Ouvrir `http://127.0.0.1:8080/agentic-needs/`.
-
-## Déploiement (OVH via FTP)
-
-Remplissez vos variables d’environnement:
-```
-export FTP_LOGIN="..."
-export FTP_PASSWORD="..."
-export OVH_ADRESSE="ftp.votre-domaine.tld"
-export REMOTE_DIR="/latry.consulting/projet/bms/agentic-needs"
-```
-Puis:
-```bash
-bash deploy-ftp.sh
+npm install          # install dépendances
+npm run dev          # http://localhost:3000
 ```
 
-## GitHub
+## Variables d’environnement
 
-Le repo cible: `https://github.com/maximelat/bms-agent-for-marketing/`
+| clé | description |
+| --- | ----------- |
+| `OPENAI_API_KEY` | requis, clef OpenAI utilisée par l’agent |
+| `OPENAI_MODEL` | modèle par défaut si aucun profil spécifique n’est fourni |
+| `OPENAI_MODEL_FAST` | modèle rapide (intro/contexte), défaut `gpt-5-nano` |
+| `OPENAI_MODEL_BALANCED` | modèle équilibré (exploration/pain points), défaut `gpt-5-mini` |
+| `OPENAI_MODEL_PREMIUM` | modèle premium (normalisation finale), défaut `gpt-5.1` |
+| `OPENAI_REALTIME_MODEL` | modèle pour WebRTC/audio (`gpt-realtime-mini` par défaut) |
+| `N8N_WEBHOOK_URL` | optionnel, webhook cible (défaut : URL fournie par Maxim) |
 
-## Sécurité
+## Déploiement
 
-- La clé OpenAI n’est jamais exposée côté client.
-- Le backend force un format JSON strict pour normaliser les résultats.
+1. Construire le projet : `npm run build`.
+2. Publier le dossier `.next` via votre pipeline (ex : Vercel, OVH, FTP vers `latry.consulting/projet/bms/agentic-needs/`).
+3. Renseigner les variables d’environnement côté hébergement puis redémarrer le service.
 
+## GitHub Actions → OVH
 
+Le workflow `.github/workflows/deploy.yml` se déclenche sur `main` et:
+
+1. installe les dépendances, lint, build (avec les secrets OpenAI) ;
+2. exécute `npm prune --production` puis assemble un dossier `deploy` contenant `.next`, `public`, `node_modules`, `package*.json`, `next.config.ts`, `tsconfig.json` ;
+3. pousse le contenu sur l’hébergement OVH via FTP (action `SamKirkland/FTP-Deploy-Action`).
+
+Secrets requis côté repo GitHub:
+
+| secret | usage |
+| --- | --- |
+| `OPENAI_API_KEY` (+ optionnel `OPENAI_MODEL*`) | build côté CI |
+| `OVH_ADRESSE` | adresse FTP OVH (ex. `ftp.latry.consulting`) |
+| `FTP_LOGIN` / `FTP_PASSWORD` | identifiants FTP |
+| `FTP_TARGET_DIR` | répertoire distant, ex. `/www/projet/bms/agentic-needs/` |
+
+Variable optionnelle côté repo GitHub : `vars.PROJECT_ROOT` (par défaut `.`) si le code vit dans un sous-dossier.
+
+Une fois remplis, chaque push sur `main` reconstruit et synchronise le site automatiquement.
+
+## Webhook & Google Sheet
+
+L’API `/api/finalize` publie automatiquement le JSON sur `https://n8n-byhww-u43341.vm.elestio.app/webhook/b9b80ad2-991f-419b-bfaf-7d8faca3de72`.  
+Vous pouvez remplacer cette valeur via `N8N_WEBHOOK_URL` pour pointer vers une autre automatisation (Google Sheets, SharePoint, etc.).
+
+## Modalités Realtime / Audio
+
+- L’API `/api/realtime-session` génère un token éphémère (client secret) pour ouvrir une session WebRTC côté navigateur.
+- La page `/realtime` embarque un composant expérimental `RealtimeConsole` : connexion audio, logs, et envoi de texte via data channel.
+- Exemples audio (`gpt-audio` / `gpt-audio-mini`) et roadmap sont détaillés dans cette page pour préparer les déclinaisons live.
+
+## Agent formulaire
+
+La page `/questionnaire` reprend la trame Google Forms : persona, moments critiques (nouvelle version de l’ancienne section “Workflow & volumes”), pain points, données, opportunités Copilot, automatisations et strategic fit. Soumission → conversion en `StructuredNeed` + envoi webhook, idéal pour des interviews asynchrones.
+
+## Stack
+
+- Next.js App Router + Tailwind
+- OpenAI SDK
+- n8n (collecte des résultats)

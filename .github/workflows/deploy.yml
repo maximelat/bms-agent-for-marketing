@@ -1,0 +1,72 @@
+name: Build & Deploy to OVH
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  PROJECT_ROOT: ${{ vars.PROJECT_ROOT || '.' }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Afficher l'arborescence
+        run: ls -a
+
+      - name: Install dependencies
+        run: |
+          cd "$PROJECT_ROOT"
+          npm install
+
+      - name: Lint
+        run: |
+          cd "$PROJECT_ROOT"
+          npm run lint
+
+      - name: Build
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
+          OPENAI_MODEL_FAST: ${{ secrets.OPENAI_MODEL_FAST }}
+          OPENAI_MODEL_BALANCED: ${{ secrets.OPENAI_MODEL_BALANCED }}
+          OPENAI_MODEL_PREMIUM: ${{ secrets.OPENAI_MODEL_PREMIUM }}
+        run: |
+          cd "$PROJECT_ROOT"
+          npm run build
+
+      - name: Prepare deploy folder
+        run: |
+          cd "$PROJECT_ROOT"
+          npm prune --production
+          mkdir -p deploy
+          cp package.json package-lock.json next.config.ts tsconfig.json deploy/
+          cp -R .next public node_modules deploy/
+
+      - name: FTP Deploy
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.OVH_ADRESSE }}
+          username: ${{ secrets.FTP_LOGIN }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
+          port: 21
+          server-dir: ${{ secrets.FTP_TARGET_DIR }}
+          local-dir: ${{ env.PROJECT_ROOT }}/deploy/
+          exclude: |
+            **/.git*
+            **/.github/**
+            **/node_modules/.pnpm/**
+            **/*.log
+
