@@ -42,6 +42,7 @@ export const AgentPlayground = () => {
   const [recipientEmail, setRecipientEmail] = useState("");
   const [previousResponseId, setPreviousResponseId] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [isNormalizing, setIsNormalizing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -230,6 +231,40 @@ export const AgentPlayground = () => {
     }
   };
 
+  const triggerNormalization = async () => {
+    if (messages.length < 4) {
+      setFeedback("⚠️ Conversez davantage avant de normaliser (au moins 2 échanges).");
+      return;
+    }
+
+    setIsNormalizing(true);
+    setFeedback("🔄 Normalisation GPT-5.1 en cours...");
+
+    try {
+      const response = await fetch("/api/normalize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          structuredNeed,
+          transcript: transcriptPayload,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok && data.normalizedNeed) {
+        setStructuredNeed(data.normalizedNeed);
+        setFeedback("✅ Canevas mis à jour avec GPT-5.1 !");
+      } else {
+        setFeedback("⚠️ Normalisation partielle.");
+      }
+    } catch (error) {
+      console.error("manual normalization error", error);
+      setFeedback("Erreur lors de la normalisation.");
+    } finally {
+      setIsNormalizing(false);
+    }
+  };
+
   const finalize = async () => {
     setFinalizing(true);
     setFeedback(null);
@@ -338,9 +373,19 @@ export const AgentPlayground = () => {
               <Send className="h-5 w-5" />
             </button>
           </div>
-          <div className="flex flex-wrap gap-2 text-xs text-zinc-500">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
             <span>Statut : {status === "ready" ? "Prêt pour synthèse" : "Collecte en cours"}</span>
             {feedback && <span className="text-amber-600">{feedback}</span>}
+            {messages.length >= 4 && (
+              <button
+                type="button"
+                onClick={triggerNormalization}
+                disabled={isNormalizing}
+                className="ml-auto rounded-full bg-purple-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-purple-700 disabled:opacity-50"
+              >
+                {isNormalizing ? "🔄 GPT-5.1..." : "🤖 Mettre à jour canevas (GPT-5.1)"}
+              </button>
+            )}
           </div>
           <div className="grid gap-2">
             <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
