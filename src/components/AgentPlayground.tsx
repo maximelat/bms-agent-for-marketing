@@ -85,6 +85,7 @@ export const AgentPlayground = () => {
     setInput("");
     setLoading(true);
     setFeedback(null);
+    setTimeout(scrollToBottom, 50); // Scroll immédiatement après affichage du message user
 
     try {
       const response = await fetch("/api/chat", {
