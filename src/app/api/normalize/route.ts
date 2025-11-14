@@ -78,10 +78,11 @@ Sortie attendue (JSON strict) :
 
     let completion;
     if (isReasoningModel) {
-      // Utiliser Responses API pour les modèles reasoning
+      // Utiliser Responses API pour les modèles reasoning avec effort low pour éviter timeout
       const responsesCompletion = await openai.responses.create({
         model,
-        reasoning: { effort: "medium" },
+        reasoning: { effort: "low" },
+        max_output_tokens: 2000,
         input: [
           { role: "system", content: [{ type: "input_text", text: systemPrompt }] },
           {
@@ -113,6 +114,8 @@ Sortie attendue (JSON strict) :
           },
         ],
         response_format: { type: "json_object" },
+        max_tokens: 2000,
+        temperature: 0.5,
       });
     }
 
