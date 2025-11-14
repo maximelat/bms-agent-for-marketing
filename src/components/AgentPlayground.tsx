@@ -36,7 +36,7 @@ export const AgentPlayground = () => {
   const [loading, setLoading] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [agentVersion, setAgentVersion] = useState<"v1" | "v2">("v1");
+  const [agentVersion] = useState<"v1" | "v2">("v2");
   const [recipientEmail, setRecipientEmail] = useState("");
   const [previousResponseId, setPreviousResponseId] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -142,7 +142,15 @@ export const AgentPlayground = () => {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      
+      // Détection du format audio supporté (webm sur desktop, mp4/m4a sur Safari/iOS)
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm")
+        ? "audio/webm"
+        : MediaRecorder.isTypeSupported("audio/mp4")
+        ? "audio/mp4"
+        : "audio/mpeg";
+      
+      const recorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = recorder;
       audioChunksRef.current = [];
 
@@ -153,9 +161,10 @@ export const AgentPlayground = () => {
       };
 
       recorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const extension = mimeType.split("/")[1] || "webm";
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
         const formData = new FormData();
-        formData.append("audio", audioBlob, "recording.webm");
+        formData.append("audio", audioBlob, `recording.${extension}`);
 
         try {
           const response = await fetch("/api/transcribe", {
@@ -217,28 +226,6 @@ export const AgentPlayground = () => {
     <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
       <section className="flex flex-col rounded-3xl border border-zinc-200 bg-white/90 p-6 shadow-lg" style={{ minHeight: "600px", maxHeight: "calc(100vh - 120px)" }}>
         <header className="mb-5 flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 rounded-full border border-emerald-200 bg-white/70 p-1 text-xs font-semibold text-emerald-700">
-            <button
-              type="button"
-              className={cn(
-                "rounded-full px-3 py-1 transition",
-                agentVersion === "v1" ? "bg-emerald-600 text-white" : "text-emerald-600",
-              )}
-              onClick={() => setAgentVersion("v1")}
-            >
-              Helios v1
-            </button>
-            <button
-              type="button"
-              className={cn(
-                "rounded-full px-3 py-1 transition",
-                agentVersion === "v2" ? "bg-emerald-600 text-white" : "text-emerald-600",
-              )}
-              onClick={() => setAgentVersion("v2")}
-            >
-              Helios v2 (trame formulaire)
-            </button>
-          </div>
           {Object.entries(phaseLabels).map(([key, label]) => (
             <span
               key={key}
@@ -344,7 +331,7 @@ export const AgentPlayground = () => {
       </section>
 
       <div className="space-y-6 lg:h-full lg:overflow-y-auto lg:pr-2">
-        <SummaryPanel data={structuredNeed} phase={phaseLabels[phase]} />
+        <SummaryPanel key={`summary-${messages.length}`} data={structuredNeed} phase={phaseLabels[phase]} />
 
         <div className="space-y-3 rounded-2xl border border-zinc-200 bg-white/80 p-5 shadow-sm">
           <div className="flex items-center justify-between">
