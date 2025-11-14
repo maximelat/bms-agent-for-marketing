@@ -119,43 +119,51 @@ export const AgentPlayground = () => {
       setPreviousResponseId(data.responseId ?? null);
       setTimeout(scrollToBottom, 100);
 
-      // Normalisation automatique si status passe à "ready"
-      if (newStatus === "ready" && status !== "ready") {
-        setFeedback("🔄 Normalisation en cours...");
-        
-        try {
-          const normalizeResponse = await fetch("/api/normalize", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              structuredNeed: structuredNeed,
-              transcript: transcriptPayload,
-            }),
+      // Normalisation automatique en arrière-plan si on a au moins 3 échanges
+      if (nextMessages.length >= 6 && data.normalizedUpdate) {
+        // Lancer la normalisation en parallèle (sans bloquer l'UI)
+        fetch("/api/normalize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            structuredNeed: structuredNeed,
+            transcript: transcriptPayload,
+          }),
+        })
+          .then((res) => res.json())
+          .then((normalizeData) => {
+            if (normalizeData.normalizedNeed) {
+              setStructuredNeed(normalizeData.normalizedNeed);
+            }
+          })
+          .catch((error) => {
+            console.error("normalisation background error", error);
           });
-          
-          const normalizeData = await normalizeResponse.json();
-          if (normalizeResponse.ok) {
-            setStructuredNeed(normalizeData.normalizedNeed);
-            setFeedback("✅ Analyse terminée ! Le rapport normalisé est prêt. Renseignez votre email pour l'envoyer.");
-          } else {
-            setFeedback("⚠️ Normalisation partielle. Vous pouvez tout de même envoyer le rapport.");
-          }
-        } catch (error) {
-          console.error("normalisation error", error);
-          setFeedback("⚠️ Normalisation partielle. Vous pouvez tout de même envoyer le rapport.");
-        }
+      }
+
+      // Notification si status passe à "ready"
+      if (newStatus === "ready" && status !== "ready") {
+        setFeedback("✅ Analyse terminée ! Le rapport est prêt. Renseignez votre email pour l'envoyer.");
       }
     } catch (error) {
       console.error(error);
+      
+      // Vérifier si c'est une erreur HTML (504, 500...)
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes("<!DOCTYPE") || errorMessage.includes("Unexpected token '<'")) {
+        setFeedback("⚠️ Le serveur a mis trop de temps à répondre. Réessayez ou reformulez votre message.");
+      } else {
+        setFeedback("Erreur de dialogue, tentative suivante recommandée.");
+      }
+      
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
           content:
-            "Je rencontre un incident technique. Veuillez contacter Maxime Latry ou réessayez dans quelques secondes.",
+            "Je rencontre un incident technique. Pouvez-vous reformuler votre dernière réponse de manière plus détaillée ?",
         },
       ]);
-      setFeedback("Erreur de dialogue, tentative suivante recommandée.");
       setPreviousResponseId(null);
     } finally {
       setLoading(false);
