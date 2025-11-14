@@ -84,7 +84,7 @@ export async function POST(request: Request) {
           role: "system",
           content: [
             {
-              type: "text",
+              type: "input_text",
               text:
                 parsed.data.agentVersion === "v2"
                   ? buildSystemPromptV2()
@@ -94,7 +94,7 @@ export async function POST(request: Request) {
         },
         ...parsed.data.messages.map((message) => ({
           role: message.role,
-          content: [{ type: "text", text: message.content }],
+          content: [{ type: "input_text", text: message.content }],
         })),
       ],
     });
