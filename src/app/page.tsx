@@ -17,7 +17,7 @@ export default function Home() {
           </p>
         </header>
 
-        <section className="grid gap-6 rounded-3xl border border-[rgba(190,43,187,0.2)] bg-white/90 p-6 shadow-sm lg:grid-cols-4">
+        <section className="grid gap-6 rounded-3xl border border-[rgba(190,43,187,0.2)] bg-white/90 p-6 shadow-sm lg:grid-cols-3">
           <div>
             <p className="text-sm font-semibold uppercase tracking-wide text-[#9A2299]">3 temps forts</p>
             <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-[#4B4B5F]">
