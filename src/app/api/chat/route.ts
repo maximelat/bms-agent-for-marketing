@@ -175,6 +175,10 @@ export async function POST(request: Request) {
       // Nettoyer le texte avant parsing (enlever HTML/markdown accidentel)
       const cleaned = raw.trim().replace(/^```json\s*/i, "").replace(/\s*```$/i, "");
       const asJson = JSON.parse(cleaned);
+      
+      // Logger pour debug
+      console.log("Chat Completions response JSON:", asJson);
+      
       const agent = agentResponseSchema.parse(asJson);
 
       return NextResponse.json({
@@ -184,6 +188,9 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error("chat route error", error);
+    if (error instanceof Error && "issues" in error) {
+      console.error("Validation errors:", (error as any).issues);
+    }
     return NextResponse.json(
       { error: "Impossible d'interroger OpenAI." },
       { status: 500 },
