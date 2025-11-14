@@ -124,9 +124,15 @@ export async function POST(request: Request) {
 
     const input: ResponseInput = [systemMessage, ...conversationMessages];
 
+    const model = selectModelForPhase(parsed.data.phase);
+    const reasoning =
+      typeof model === "string" && model.includes("5.1")
+        ? { effort: "none" as const }
+        : undefined;
+
     const completion = await openai.responses.create({
-      model: selectModelForPhase(parsed.data.phase),
-      reasoning: { effort: "none" },
+      model,
+      ...(reasoning ? { reasoning } : {}),
       ...(parsed.data.previousResponseId
         ? { previous_response_id: parsed.data.previousResponseId }
         : {}),
