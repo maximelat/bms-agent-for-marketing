@@ -105,17 +105,43 @@ export const AgentPlayground = () => {
       }
 
       setMessages([...nextMessages, { role: "assistant", content: data.reply }]);
-      const updatedNeed = mergeStructuredNeed(structuredNeed, data.normalizedUpdate);
-      setStructuredNeed(updatedNeed);
+      
+      // Mise à jour de la synthèse en parallèle
+      if (data.normalizedUpdate) {
+        setStructuredNeed((prev) => mergeStructuredNeed(prev, data.normalizedUpdate));
+      }
+      
       setPhase(data.phase as AgentPhase);
       const newStatus = data.status === "ready" ? "ready" : "collect";
       setStatus(newStatus);
       setPreviousResponseId(data.responseId ?? null);
       setTimeout(scrollToBottom, 100);
 
-      // Auto-génération du rapport si status passe à "ready"
-      if (newStatus === "ready" && status !== "ready" && updatedNeed.copilotOpportunities.length > 0) {
-        setFeedback("✅ Analyse terminée ! Le rapport est prêt. Renseignez votre email pour l'envoyer automatiquement.");
+      // Normalisation automatique si status passe à "ready"
+      if (newStatus === "ready" && status !== "ready") {
+        setFeedback("🔄 Normalisation en cours...");
+        
+        try {
+          const normalizeResponse = await fetch("/api/normalize", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              structuredNeed: structuredNeed,
+              transcript: transcriptPayload,
+            }),
+          });
+          
+          const normalizeData = await normalizeResponse.json();
+          if (normalizeResponse.ok) {
+            setStructuredNeed(normalizeData.normalizedNeed);
+            setFeedback("✅ Analyse terminée ! Le rapport normalisé est prêt. Renseignez votre email pour l'envoyer.");
+          } else {
+            setFeedback("⚠️ Normalisation partielle. Vous pouvez tout de même envoyer le rapport.");
+          }
+        } catch (error) {
+          console.error("normalisation error", error);
+          setFeedback("⚠️ Normalisation partielle. Vous pouvez tout de même envoyer le rapport.");
+        }
       }
     } catch (error) {
       console.error(error);

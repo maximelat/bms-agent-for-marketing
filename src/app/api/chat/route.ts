@@ -142,7 +142,10 @@ export async function POST(request: Request) {
           .flatMap((item: any) => item.content ?? [])
           .find((contentItem: any) => contentItem.type === "output_text")
           ?.text ?? "{}";
-      const asJson = JSON.parse(raw);
+      
+      // Nettoyer le texte avant parsing (enlever HTML/markdown accidentel)
+      const cleaned = raw.trim().replace(/^```json\s*/i, "").replace(/\s*```$/i, "");
+      const asJson = JSON.parse(cleaned);
       const agent = agentResponseSchema.parse(asJson);
 
       return NextResponse.json({
@@ -168,7 +171,10 @@ export async function POST(request: Request) {
       });
 
       const raw = completion.choices[0]?.message?.content ?? "{}";
-      const asJson = JSON.parse(raw);
+      
+      // Nettoyer le texte avant parsing (enlever HTML/markdown accidentel)
+      const cleaned = raw.trim().replace(/^```json\s*/i, "").replace(/\s*```$/i, "");
+      const asJson = JSON.parse(cleaned);
       const agent = agentResponseSchema.parse(asJson);
 
       return NextResponse.json({
