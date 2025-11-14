@@ -252,10 +252,10 @@ export const AgentPlayground = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* Bloc 1 : Chat (2/3) + Synthèse & Transcription (1/3) sur desktop */}
-      <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-        <section className="flex flex-col rounded-3xl border border-zinc-200 bg-white/90 p-6 shadow-lg" style={{ maxHeight: "calc(100vh - 200px)" }}>
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[2fr_1fr]">
+        <section className="order-1 flex flex-col rounded-3xl border border-zinc-200 bg-white/90 p-6 shadow-lg" style={{ maxHeight: "calc(100vh - 200px)" }}>
         <header className="mb-5 flex flex-wrap items-center gap-3">
           {Object.entries(phaseLabels).map(([key, label]) => (
             <span
@@ -363,7 +363,7 @@ export const AgentPlayground = () => {
       </section>
 
       {/* Colonne droite : Synthèse + Transcription */}
-      <div className="space-y-6" style={{ maxHeight: "calc(100vh - 200px)", overflowY: "auto" }}>
+      <div className="order-2 space-y-6 lg:order-2" style={{ maxHeight: "calc(100vh - 200px)", overflowY: "auto" }}>
         <SummaryPanel
           key={`summary-${messages.length}`}
           data={structuredNeed}
@@ -410,8 +410,8 @@ export const AgentPlayground = () => {
       </div>
     </div>
 
-      {/* Bloc 2 : Canevas Use Case (pleine largeur) */}
-      <div className="rounded-3xl border border-zinc-200 bg-white/90 p-6 shadow-lg">
+      {/* Bloc 2 : Canevas Use Case (pleine largeur) - order-3 pour mobile */}
+      <div className="order-3 rounded-3xl border border-zinc-200 bg-white/90 p-6 shadow-lg">
         <CanvasCard
           canvas={useMemo(() => convertToCanvas(structuredNeed, recipientEmail || "preview"), [structuredNeed, recipientEmail])}
           isPreview
