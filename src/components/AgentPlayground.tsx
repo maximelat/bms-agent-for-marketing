@@ -87,14 +87,11 @@ export const AgentPlayground = () => {
     setFeedback(null);
 
     try {
-      const payloadMessages =
-        previousResponseId !== null ? [userMessage] : nextMessages;
-
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: payloadMessages,
+          messages: nextMessages,
           phase,
           agentVersion,
           previousResponseId: previousResponseId ?? undefined,

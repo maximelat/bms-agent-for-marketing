@@ -151,6 +151,7 @@ export async function POST(request: Request) {
       });
     } else {
       // Modèle non-reasoning → Chat Completions API
+      // On envoie l'historique complet pour garder le contexte
       const chatMessages = [
         { role: "system" as const, content: systemPrompt },
         ...parsed.data.messages.map((m: IncomingMessage) => ({
@@ -163,6 +164,7 @@ export async function POST(request: Request) {
         model,
         messages: chatMessages,
         response_format: { type: "json_object" },
+        temperature: 0.7,
       });
 
       const raw = completion.choices[0]?.message?.content ?? "{}";
