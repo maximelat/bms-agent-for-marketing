@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { z } from "zod";
+import { randomUUID } from "crypto";
 import type {
   ResponseInput,
   EasyInputMessage,
+  ResponseOutputMessage,
 } from "openai/resources/responses/responses";
 import {
   buildSystemPrompt,
@@ -92,12 +94,30 @@ export async function POST(request: Request) {
       ],
     };
 
-    const conversationMessages: EasyInputMessage[] = parsed.data.messages.map(
-      (message) => ({
+    const conversationMessages = parsed.data.messages.map((message, index) => {
+      if (message.role === "assistant") {
+        const assistantMessage: ResponseOutputMessage = {
+          id: `assistant-${index}-${randomUUID()}`,
+          role: "assistant",
+          status: "completed",
+          type: "message",
+          content: [
+            {
+              type: "output_text",
+              text: message.content,
+              annotations: [],
+            },
+          ],
+        };
+        return assistantMessage;
+      }
+
+      const userMessage: EasyInputMessage = {
         role: message.role,
         content: [{ type: "input_text", text: message.content }],
-      }),
-    );
+      };
+      return userMessage;
+    });
 
     const input: ResponseInput = [systemMessage, ...conversationMessages];
 
