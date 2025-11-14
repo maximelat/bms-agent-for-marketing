@@ -34,16 +34,16 @@ const REASONING_MODELS = ["gpt-5.1", "gpt-5", "gpt-5-mini", "gpt-5-nano", "o3", 
 const selectModelForPhase = (phase?: AgentPhase) => {
   if (phase === "normalisation") {
     return (
-      process.env.OPENAI_MODEL_PREMIUM ??
-      process.env.OPENAI_MODEL ??
+      process.env.OPENAI_MODEL_PREMIUM?.trim() ||
+      process.env.OPENAI_MODEL?.trim() ||
       "gpt-5.1"
     );
   }
 
   // Toutes les autres phases utilisent un modèle rapide sans reasoning
   return (
-    process.env.OPENAI_MODEL_FAST ??
-    process.env.OPENAI_MODEL ??
+    process.env.OPENAI_MODEL_FAST?.trim() ||
+    process.env.OPENAI_MODEL?.trim() ||
     "gpt-4o-mini"
   );
 };
