@@ -62,7 +62,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           server-dir: ${{ secrets.FTP_TARGET_DIR }}
-          local-dir: ${{ env.PROJECT_ROOT }}/deploy
+          local-dir: ${{ env.PROJECT_ROOT }}/deploy/
           exclude: |
             **/.git*
             **/.github/**
