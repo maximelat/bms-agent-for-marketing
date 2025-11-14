@@ -1,15 +1,11 @@
 "use client";
 
 import { StructuredNeed, FitLevel } from "@/lib/structuredNeed";
-import { UseCaseCanvas } from "@/lib/useCaseCanvas";
-import { convertToCanvas } from "@/lib/convertToCanvas";
 import { cn } from "@/lib/utils";
-import { useMemo } from "react";
 
 interface Props {
   data: StructuredNeed;
   phase: string;
-  onUpdateFit?: (importance: FitLevel, frequency: FitLevel) => void;
 }
 
 const levelLabel: Record<FitLevel, string> = {
@@ -20,9 +16,7 @@ const levelLabel: Record<FitLevel, string> = {
 
 const gridLevels: FitLevel[] = ["low", "medium", "high"];
 
-export const SummaryPanel = ({ data, phase, onUpdateFit }: Props) => {
-  const canvas = useMemo(() => convertToCanvas(data, "preview"), [data]);
-
+export const SummaryPanel = ({ data, phase }: Props) => {
   return (
     <div className="space-y-6 rounded-2xl border border-zinc-200 bg-white/70 p-6 shadow-sm backdrop-blur">
       <header>
@@ -94,77 +88,12 @@ export const SummaryPanel = ({ data, phase, onUpdateFit }: Props) => {
         )}
       </section>
 
-      <section className="space-y-3">
-        <div>
-          <h3 className="font-semibold text-zinc-800">Strategic fit</h3>
-          <p className="text-sm text-zinc-500">{data.strategicFit.rationale || "En attente d'évaluation."}</p>
-        </div>
-
-        <div className="grid grid-cols-4 gap-1 text-[10px]">
-          <div className="col-span-1" />
-          {gridLevels.map((freq) => (
-            <div key={freq} className="text-center font-semibold text-zinc-500">
-              {levelLabel[freq]}
-            </div>
-          ))}
-          {gridLevels.map((importance) => (
-            <>
-              <div key={`label-${importance}`} className="flex items-center justify-end pr-1 font-semibold text-zinc-500">
-                {levelLabel[importance]}
-              </div>
-              {gridLevels.map((frequency) => (
-                <button
-                  type="button"
-                  key={`${importance}-${frequency}`}
-                  onClick={() => onUpdateFit?.(importance, frequency)}
-                  className={cn(
-                    "aspect-square rounded border border-zinc-200 bg-zinc-50 transition hover:border-emerald-400 hover:bg-emerald-50",
-                    importance === data.strategicFit.importance && frequency === data.strategicFit.frequency
-                      ? "border-emerald-500 bg-emerald-100"
-                      : "",
-                  )}
-                  title={`Importance ${levelLabel[importance]} / Fréquence ${levelLabel[frequency]}`}
-                />
-              ))}
-            </>
-          ))}
-        </div>
-      </section>
-
-      <section className="space-y-3 rounded-lg border border-blue-100 bg-blue-50/50 p-4">
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-blue-900">Canevas Use Case</h3>
-          <span className="text-xs text-blue-600">Aperçu temps réel</span>
-        </div>
-        <div className="space-y-2 text-sm text-blue-900">
-          <div>
-            <p className="font-semibold">Problem to solve</p>
-            <p className="text-blue-800">{canvas.problemToSolve || "En cours de collecte..."}</p>
-          </div>
-          <div>
-            <p className="font-semibold">Use case description</p>
-            <p className="text-blue-800">{canvas.useCaseDescription || "En cours de collecte..."}</p>
-          </div>
-          <div>
-            <p className="font-semibold">Business objective</p>
-            <p className="text-blue-800">{canvas.businessObjective || "En cours de collecte..."}</p>
-          </div>
-          {canvas.keyResults.length > 0 && (
-            <div>
-              <p className="font-semibold">Key results</p>
-              <ul className="list-disc pl-5 text-blue-800">
-                {canvas.keyResults.slice(0, 3).map((kr, idx) => (
-                  <li key={idx}>{kr}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {canvas.stakeholders.length > 0 && (
-            <div>
-              <p className="font-semibold">Stakeholders</p>
-              <p className="text-blue-800">{canvas.stakeholders.slice(0, 3).join(", ")}</p>
-            </div>
-          )}
+      <section className="space-y-2">
+        <h3 className="font-semibold text-zinc-800">Strategic fit</h3>
+        <p className="text-sm text-zinc-500">{data.strategicFit.rationale || "En attente d'évaluation."}</p>
+        <div className="text-xs text-zinc-600">
+          Importance : {levelLabel[data.strategicFit.importance]} · 
+          Fréquence : {levelLabel[data.strategicFit.frequency]}
         </div>
       </section>
     </div>

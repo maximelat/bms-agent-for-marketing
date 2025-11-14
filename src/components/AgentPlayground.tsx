@@ -2,10 +2,12 @@
 
 import { useMemo, useState, useRef } from "react";
 import { Send, Loader2, Sparkles, Copy, Mic } from "lucide-react";
-import { defaultStructuredNeed, StructuredNeed } from "@/lib/structuredNeed";
+import { defaultStructuredNeed, StructuredNeed, FitLevel } from "@/lib/structuredNeed";
 import { AgentPhase } from "@/lib/agentPrompt";
 import { mergeStructuredNeed } from "@/lib/mergeStructuredNeed";
 import { SummaryPanel } from "./SummaryPanel";
+import { CanvasCard } from "./CanvasCard";
+import { convertToCanvas } from "@/lib/convertToCanvas";
 import { cn } from "@/lib/utils";
 
 type ChatMessage = {
@@ -359,11 +361,10 @@ export const AgentPlayground = () => {
       </section>
 
       <div className="space-y-6 lg:h-full lg:overflow-y-auto lg:pr-2">
-        <SummaryPanel
-          key={`summary-${messages.length}`}
-          data={structuredNeed}
-          phase={phaseLabels[phase]}
-          onUpdateFit={(importance, frequency) => {
+        <CanvasCard
+          canvas={useMemo(() => convertToCanvas(structuredNeed, recipientEmail || "preview"), [structuredNeed, recipientEmail])}
+          isPreview
+          onUpdateFit={(importance: FitLevel, frequency: FitLevel) => {
             setStructuredNeed((prev) => ({
               ...prev,
               strategicFit: {
@@ -373,6 +374,12 @@ export const AgentPlayground = () => {
               },
             }));
           }}
+        />
+        
+        <SummaryPanel
+          key={`summary-${messages.length}`}
+          data={structuredNeed}
+          phase={phaseLabels[phase]}
         />
 
         <div className="space-y-3 rounded-2xl border border-zinc-200 bg-white/80 p-5 shadow-sm">
