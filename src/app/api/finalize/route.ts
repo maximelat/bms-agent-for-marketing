@@ -9,9 +9,14 @@ const finalizeSchema = z.object({
   transcript: z
     .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string() }))
     .optional(),
+  recipientEmail: z.string().email().optional(),
 });
 
-const sendWebhook = async (need: StructuredNeed, transcript?: { role: string; content: string }[]) => {
+const sendWebhook = async (
+  need: StructuredNeed,
+  recipientEmail?: string,
+  transcript?: { role: string; content: string }[],
+) => {
   const url = process.env.N8N_WEBHOOK_URL ?? fallbackWebhook;
   await fetch(url, {
     method: "POST",
@@ -20,6 +25,7 @@ const sendWebhook = async (need: StructuredNeed, transcript?: { role: string; co
       type: "bms-agentic-need",
       capturedAt: new Date().toISOString(),
       structuredNeed: need,
+      recipientEmail,
       transcript,
     }),
   });
@@ -37,7 +43,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    await sendWebhook(parsed.data.structuredNeed, parsed.data.transcript);
+    await sendWebhook(parsed.data.structuredNeed, parsed.data.recipientEmail, parsed.data.transcript);
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("finalize error", error);
