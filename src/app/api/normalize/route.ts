@@ -69,9 +69,7 @@ Sortie attendue (JSON strict) :
 }
 `;
 
-    // Limiter la transcription aux 10 derniers échanges pour éviter timeout
-    const recentTranscript = parsed.data.transcript.slice(-20); // 10 derniers échanges
-    const transcriptText = recentTranscript
+    const transcriptText = parsed.data.transcript
       .map((m) => `${m.role === "assistant" ? "Helios" : "Utilisateur"}: ${m.content}`)
       .join("\n\n");
 
@@ -86,8 +84,8 @@ Sortie attendue (JSON strict) :
       // Utiliser Responses API pour les modèles reasoning avec effort low pour éviter timeout
       const responsesCompletion = await openai.responses.create({
         model,
-        reasoning: { effort: "none" },
-        max_output_tokens: 1500,
+        reasoning: { effort: "low" },
+        max_output_tokens: 2000,
         input: [
           { role: "system", content: [{ type: "input_text", text: systemPrompt }] },
           {
@@ -95,7 +93,7 @@ Sortie attendue (JSON strict) :
             content: [
               {
                 type: "input_text",
-                text: `Transcription récente:\n${transcriptText}\n\nDonnées collectées:\n${JSON.stringify(parsed.data.structuredNeed)}\n\nComplète les champs manquants du canevas.`,
+                text: `Transcription complète:\n${transcriptText}\n\nDonnées collectées:\n${JSON.stringify(parsed.data.structuredNeed)}\n\nComplète les champs manquants du canevas.`,
               },
             ],
           },
@@ -115,7 +113,7 @@ Sortie attendue (JSON strict) :
           { role: "system", content: systemPrompt },
           {
             role: "user",
-            content: `Transcription récente:\n${transcriptText}\n\nDonnées collectées:\n${JSON.stringify(parsed.data.structuredNeed)}\n\nComplète les champs manquants du canevas.`,
+            content: `Transcription complète:\n${transcriptText}\n\nDonnées collectées:\n${JSON.stringify(parsed.data.structuredNeed)}\n\nComplète les champs manquants du canevas.`,
           },
         ],
         response_format: { type: "json_object" },
