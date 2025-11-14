@@ -277,7 +277,7 @@ export const AgentPlayground = () => {
             <div
               key={index}
               className={cn(
-                "max-w-3xl rounded-2xl px-4 py-3 text-sm leading-relaxed",
+                "max-w-3xl rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap",
                 message.role === "assistant"
                   ? "bg-zinc-50 text-zinc-900"
                   : "ml-auto bg-emerald-600 text-white",

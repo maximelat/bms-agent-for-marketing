@@ -84,41 +84,52 @@ export const CanvasCard = ({ canvas, isPreview = false, onUpdateFit }: Props) =>
         </div>
         <div>
           <p className="text-xs font-semibold uppercase text-zinc-500">Strategic fit</p>
-          <div className="mt-2 grid grid-cols-4 gap-[2px] text-[9px]">
-            <div className="col-span-1" />
-            {gridLevels.map((freq) => (
-              <div key={freq} className="text-center font-semibold text-zinc-500">
-                {levelLabel[freq]}
-              </div>
-            ))}
-            {gridLevels.map((importance) => (
-              <>
-                <div key={`label-${importance}`} className="flex items-center justify-end pr-1 text-right font-semibold text-zinc-500">
-                  {levelLabel[importance]}
+          <div className="relative mt-2">
+            {/* Matrice 4x4 */}
+            <div className="grid grid-cols-4 gap-[2px] text-[9px]">
+              <div className="col-span-1" />
+              {gridLevels.map((freq) => (
+                <div key={freq} className="text-center font-semibold text-zinc-500">
+                  {levelLabel[freq]}
                 </div>
-                {gridLevels.map((frequency) => (
-                  <button
-                    type="button"
-                    key={`${importance}-${frequency}`}
-                    onClick={() => onUpdateFit?.(importance, frequency)}
-                    disabled={!onUpdateFit}
-                    className={cn(
-                      "aspect-square rounded border border-zinc-300 bg-white transition",
-                      onUpdateFit && "hover:border-emerald-400 hover:bg-emerald-50 cursor-pointer",
-                      !onUpdateFit && "cursor-default",
-                      importance === canvas.strategicFit.importance && frequency === canvas.strategicFit.frequency
-                        ? "border-emerald-600 bg-emerald-400"
-                        : "",
-                    )}
-                    title={onUpdateFit ? `Importance ${levelLabel[importance]} / Fréquence ${levelLabel[frequency]}` : undefined}
-                  />
-                ))}
-              </>
-            ))}
+              ))}
+              {gridLevels.map((importance) => (
+                <>
+                  <div key={`label-${importance}`} className="flex items-center justify-end pr-1 text-right font-semibold text-zinc-500">
+                    {levelLabel[importance]}
+                  </div>
+                  {gridLevels.map((frequency) => (
+                    <button
+                      type="button"
+                      key={`${importance}-${frequency}`}
+                      onClick={() => onUpdateFit?.(importance, frequency)}
+                      disabled={!onUpdateFit}
+                      className={cn(
+                        "aspect-square rounded border border-zinc-300 bg-white transition",
+                        onUpdateFit && "hover:border-emerald-400 hover:bg-emerald-50 cursor-pointer",
+                        !onUpdateFit && "cursor-default",
+                        importance === canvas.strategicFit.importance && frequency === canvas.strategicFit.frequency
+                          ? "border-emerald-600 bg-emerald-400"
+                          : "",
+                      )}
+                      title={onUpdateFit ? `Importance ${levelLabel[importance]} / Fréquence ${levelLabel[frequency]}` : undefined}
+                    />
+                  ))}
+                </>
+              ))}
+            </div>
+            
+            {/* Labels axes */}
+            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[10px] font-semibold italic text-zinc-600">
+              Frequency →
+            </div>
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] font-semibold italic text-zinc-600" style={{ transformOrigin: "left center" }}>
+              Importance / Value ↑
+            </div>
           </div>
-          <p className="mt-2 text-xs italic text-zinc-600">
-            Importance: <span className="font-semibold">{levelLabel[canvas.strategicFit.importance]}</span> / 
-            Frequency: <span className="font-semibold">{levelLabel[canvas.strategicFit.frequency]}</span>
+          <p className="mt-6 text-xs italic text-zinc-600">
+            <span className="font-semibold">{levelLabel[canvas.strategicFit.importance]}</span> importance / 
+            <span className="font-semibold"> {levelLabel[canvas.strategicFit.frequency]}</span> frequency
           </p>
         </div>
       </div>
