@@ -13,7 +13,7 @@ export default function Home() {
           <p className="max-w-3xl text-lg text-[#4B4B5F]">
             Ce compagnon assiste les équipes marketing produits BMS pour capturer des cas d’usage, cartographier les
             données SharePoint/Teams et préparer la matrice de strategic fit. Chaque entretien est guidé, structuré et
-            exporté automatiquement vers le webhook n8n (email géré ensuite par vos automatisations).
+            exporté automatiquement.
           </p>
         </header>
 
@@ -22,8 +22,8 @@ export default function Home() {
             <p className="text-sm font-semibold uppercase tracking-wide text-[#9A2299]">3 temps forts</p>
             <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-[#4B4B5F]">
               <li>Exploration métier et irritants quantifiés.</li>
-              <li>Cartographie fine des données (origine, volume, fréquence, confidentialité).</li>
-              <li>Projection Copilot + scénarios d’automatisations avancées.</li>
+              <li>Cartographie des données (origine, volume, fréquence, confidentialité).</li>
+              <li>Projection dans Agent Copilot Lite + scénarios d’automatisations avancées.</li>
             </ul>
           </div>
           <div>
@@ -51,14 +51,6 @@ export default function Home() {
                 </Link>
                 .
               </li>
-            </ul>
-          </div>
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-[#9A2299]">Prérequis</p>
-            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-[#4B4B5F]">
-              <li>OPENAI_API_KEY valide (profil GPT-5 par défaut).</li>
-              <li>N8N_WEBHOOK_URL optionnel, sinon valeur fournie.</li>
-              <li>FTP_* + OVH_ADRESSE pour la CI/CD.</li>
             </ul>
           </div>
         </section>
