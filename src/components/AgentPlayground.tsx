@@ -76,11 +76,14 @@ export const AgentPlayground = () => {
     setFeedback(null);
 
     try {
+      const payloadMessages =
+        previousResponseId !== null ? [userMessage] : nextMessages;
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: nextMessages,
+          messages: payloadMessages,
           phase,
           agentVersion,
           previousResponseId: previousResponseId ?? undefined,
@@ -142,8 +145,8 @@ export const AgentPlayground = () => {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
-      <section className="flex flex-col rounded-3xl border border-zinc-200 bg-white/90 p-6 shadow-lg">
+    <div className="grid gap-6 lg:h-full lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)] lg:overflow-hidden">
+      <section className="flex flex-col rounded-3xl border border-zinc-200 bg-white/90 p-6 shadow-lg lg:h-full lg:overflow-hidden">
         <header className="mb-5 flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 rounded-full border border-emerald-200 bg-white/70 p-1 text-xs font-semibold text-emerald-700">
             <button
@@ -181,7 +184,7 @@ export const AgentPlayground = () => {
         </header>
 
         <div
-          className="flex-1 space-y-4 overflow-y-auto [&::-webkit-scrollbar]:hidden"
+          className="flex-1 min-h-0 space-y-4 overflow-y-auto [&::-webkit-scrollbar]:hidden"
           style={{ scrollbarWidth: "none" }}
         >
           {messages.map((message, index) => (
@@ -208,7 +211,7 @@ export const AgentPlayground = () => {
         <div className="mt-4 space-y-3">
           <div className="flex items-end gap-2">
             <textarea
-              className="min-h-[90px] flex-1 resize-none rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-500"
+              className="min-h-[70px] flex-1 resize-none rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-500"
               placeholder="Décrivez les tâches répétitives, les données manipulées, etc."
               value={input}
               onChange={(event) => setInput(event.target.value)}
@@ -258,7 +261,7 @@ export const AgentPlayground = () => {
         </div>
       </section>
 
-      <div className="space-y-6">
+      <div className="space-y-6 lg:h-full lg:overflow-y-auto lg:pr-2">
         <SummaryPanel data={structuredNeed} phase={phaseLabels[phase]} />
 
         <div className="space-y-3 rounded-2xl border border-zinc-200 bg-white/80 p-5 shadow-sm">

@@ -371,7 +371,7 @@ export const QuestionnaireAgent = () => {
             />
           </label>
           <label className="text-sm text-amber-900">
-            Où perdez-vous le plus d’énergie ou de confiance ?
+            Quand perdez-vous le plus d’énergie ?
             <textarea
               className="mt-1 w-full rounded-2xl border border-amber-200/60 bg-white px-3 py-2 text-sm"
               rows={3}
@@ -380,7 +380,7 @@ export const QuestionnaireAgent = () => {
             />
           </label>
           <label className="text-sm text-amber-900">
-            Signaux d’alerte qui vous inquiètent (ex: mails tardifs, validations bloquées…)
+            Quels sont les facteurs de stresse réguliers (ex: mails tardifs, validations bloquées…)
             <textarea
               className="mt-1 w-full rounded-2xl border border-amber-200/60 bg-white px-3 py-2 text-sm"
               rows={3}
@@ -389,7 +389,7 @@ export const QuestionnaireAgent = () => {
             />
           </label>
           <label className="text-sm text-amber-900">
-            Outils ou espaces utilisés (séparés par virgules)
+            Outils ou espaces utilisés pour stocker des contenus (séparés par virgules)
             <input
               className="mt-1 w-full rounded-2xl border border-amber-200/60 bg-white px-3 py-2 text-sm"
               value={tooling}
@@ -416,7 +416,7 @@ export const QuestionnaireAgent = () => {
           {painPoints.map((point, index) => (
             <div key={`pain-${index}`} className="rounded-2xl border border-rose-100 bg-rose-50/50 p-4 space-y-3">
               <div className="flex items-center justify-between text-sm font-semibold text-rose-700">
-                Irritant #{index + 1}
+                Painpoint #{index + 1}
                 {painPoints.length > 1 && (
                   <button type="button" onClick={() => removeItem(setPainPoints, index)} className="text-rose-500">
                     <Trash2 className="h-4 w-4" />
