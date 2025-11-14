@@ -36,6 +36,7 @@ export const AgentPlayground = () => {
   const [loading, setLoading] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [agentVersion, setAgentVersion] = useState<"v1" | "v2">("v1");
 
   const canFinalize = status === "ready" && structuredNeed.copilotOpportunities.length > 0;
 
@@ -57,7 +58,7 @@ export const AgentPlayground = () => {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages, phase }),
+        body: JSON.stringify({ messages: nextMessages, phase, agentVersion }),
       });
 
       const data = await response.json();
@@ -115,6 +116,28 @@ export const AgentPlayground = () => {
     <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
       <section className="flex flex-col rounded-3xl border border-zinc-200 bg-white/90 p-6 shadow-lg">
         <header className="mb-5 flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 rounded-full border border-emerald-200 bg-white/70 p-1 text-xs font-semibold text-emerald-700">
+            <button
+              type="button"
+              className={cn(
+                "rounded-full px-3 py-1 transition",
+                agentVersion === "v1" ? "bg-emerald-600 text-white" : "text-emerald-600",
+              )}
+              onClick={() => setAgentVersion("v1")}
+            >
+              Helios v1
+            </button>
+            <button
+              type="button"
+              className={cn(
+                "rounded-full px-3 py-1 transition",
+                agentVersion === "v2" ? "bg-emerald-600 text-white" : "text-emerald-600",
+              )}
+              onClick={() => setAgentVersion("v2")}
+            >
+              Helios v2 (trame formulaire)
+            </button>
+          </div>
           {Object.entries(phaseLabels).map(([key, label]) => (
             <span
               key={key}

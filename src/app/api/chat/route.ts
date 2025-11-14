@@ -3,6 +3,7 @@ import OpenAI from "openai";
 import { z } from "zod";
 import {
   buildSystemPrompt,
+  buildSystemPromptV2,
   AGENT_PHASES,
   type AgentPhase,
 } from "@/lib/agentPrompt";
@@ -15,6 +16,7 @@ const requestSchema = z.object({
     }),
   ),
   phase: z.enum(AGENT_PHASES).optional(),
+  agentVersion: z.enum(["v1", "v2"]).optional(),
 });
 
 const agentResponseSchema = z.object({
@@ -78,7 +80,13 @@ export async function POST(request: Request) {
       temperature: 0.2,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: buildSystemPrompt() },
+        {
+          role: "system",
+          content:
+            parsed.data.agentVersion === "v2"
+              ? buildSystemPromptV2()
+              : buildSystemPrompt(),
+        },
         ...parsed.data.messages,
       ],
     });

@@ -9,6 +9,13 @@ Portail d’entretien guidé permettant de:
 
 L’agent “Helios” s’appuie sur OpenAI et orchestre plusieurs modèles : rapide pour la mise en contexte, plus intelligent pour l’exploration, et un modèle premium pour la normalisation finale.
 
+## Agents disponibles
+
+- **Helios v1 (chat guidé)** : parcours conversationnel classique, parfait pour des entretiens live rapides.
+- **Helios v2 (chat aligné sur le questionnaire)** : mêmes étapes que le formulaire Google (rituels, signaux d’alerte, strategic fit requis). Sélection possible directement dans l’interface (toggle “Helios v1 / v2”).
+- **Modo Realtime & audio** : page `/realtime`, streaming voix + texte.
+- **Agent formulaire** : page `/questionnaire`, saisie de la trame complète en mode asynchrone.
+
 ## Démarrage local
 
 ```bash
