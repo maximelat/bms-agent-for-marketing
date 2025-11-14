@@ -36,31 +36,19 @@ const agentResponseSchema = z.object({
 });
 
 const selectModelForPhase = (phase?: AgentPhase) => {
-  switch (phase) {
-    case "contexte":
-      return (
-        process.env.OPENAI_MODEL_FAST ??
-        process.env.OPENAI_MODEL ??
-        "gpt-5-nano"
-      );
-    case "pain-points":
-    case "donnees":
-    case "copilot":
-    case "automation-avancee":
-      return (
-        process.env.OPENAI_MODEL_BALANCED ??
-        process.env.OPENAI_MODEL ??
-        "gpt-5-mini"
-      );
-    case "normalisation":
-      return (
-        process.env.OPENAI_MODEL_PREMIUM ??
-        process.env.OPENAI_MODEL ??
-        "gpt-5.1"
-      );
-    default:
-      return process.env.OPENAI_MODEL ?? "gpt-5-mini";
+  if (phase === "normalisation") {
+    return (
+      process.env.OPENAI_MODEL_PREMIUM ??
+      process.env.OPENAI_MODEL ??
+      "gpt-5.1"
+    );
   }
+
+  return (
+    process.env.OPENAI_MODEL_FAST ??
+    process.env.OPENAI_MODEL ??
+    "gpt-5-nano"
+  );
 };
 
 export async function POST(request: Request) {
