@@ -69,7 +69,9 @@ Sortie attendue (JSON strict) :
 }
 `;
 
-    const transcriptText = parsed.data.transcript
+    // Limiter la transcription aux 10 derniers échanges pour éviter timeout
+    const recentTranscript = parsed.data.transcript.slice(-20); // 10 derniers échanges
+    const transcriptText = recentTranscript
       .map((m) => `${m.role === "assistant" ? "Helios" : "Utilisateur"}: ${m.content}`)
       .join("\n\n");
 
@@ -84,8 +86,8 @@ Sortie attendue (JSON strict) :
       // Utiliser Responses API pour les modèles reasoning avec effort low pour éviter timeout
       const responsesCompletion = await openai.responses.create({
         model,
-        reasoning: { effort: "low" },
-        max_output_tokens: 2000,
+        reasoning: { effort: "none" },
+        max_output_tokens: 1500,
         input: [
           { role: "system", content: [{ type: "input_text", text: systemPrompt }] },
           {
@@ -93,7 +95,7 @@ Sortie attendue (JSON strict) :
             content: [
               {
                 type: "input_text",
-                text: `Voici la transcription complète de l'entretien :\n\n${transcriptText}\n\nDonnées déjà collectées :\n${JSON.stringify(parsed.data.structuredNeed, null, 2)}\n\nNormalise ce use case et complète les champs manquants.`,
+                text: `Transcription récente:\n${transcriptText}\n\nDonnées collectées:\n${JSON.stringify(parsed.data.structuredNeed)}\n\nComplète les champs manquants du canevas.`,
               },
             ],
           },
@@ -113,12 +115,12 @@ Sortie attendue (JSON strict) :
           { role: "system", content: systemPrompt },
           {
             role: "user",
-            content: `Voici la transcription complète de l'entretien :\n\n${transcriptText}\n\nDonnées déjà collectées :\n${JSON.stringify(parsed.data.structuredNeed, null, 2)}\n\nNormalise ce use case et complète les champs manquants.`,
+            content: `Transcription récente:\n${transcriptText}\n\nDonnées collectées:\n${JSON.stringify(parsed.data.structuredNeed)}\n\nComplète les champs manquants du canevas.`,
           },
         ],
         response_format: { type: "json_object" },
-        max_tokens: 2000,
-        temperature: 0.5,
+        max_tokens: 1500,
+        temperature: 0.3,
       });
     }
 
