@@ -356,10 +356,9 @@ export const QuestionnaireAgent = () => {
 
       <section className="rounded-3xl border border-amber-100 bg-amber-50 p-6 shadow-sm">
         <p className="text-xs uppercase tracking-[0.4em] text-amber-600">Section 2</p>
-        <h2 className="text-2xl font-semibold text-amber-900">Moments critiques & énergie</h2>
+        <h2 className="text-2xl font-semibold text-amber-900">Votre quotidien et temps forts</h2>
         <p className="text-sm text-amber-800">
-          Reformulation de la phase “Workflow & volumes” : l’objectif est d’ouvrir l’échange vers les situations qui
-          créent des douleurs, sans enfermer l’utilisateur dans des métriques trop précoces.
+          Ouvrons l'échange vers des situations qui créent douleurs ou frustration, sans enfermer l’utilisateur dans des métriques trop précoces.
         </p>
         <div className="mt-4 space-y-4">
           <label className="text-sm text-amber-900">
