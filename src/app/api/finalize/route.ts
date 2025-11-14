@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { StructuredNeed } from "@/lib/structuredNeed";
+import { UseCaseCanvas } from "@/lib/useCaseCanvas";
+import { convertToCanvas } from "@/lib/convertToCanvas";
 
 const fallbackWebhook = "https://n8n-byhww-u43341.vm.elestio.app/webhook/b9b80ad2-991f-419b-bfaf-7d8faca3de72";
 
@@ -14,6 +16,7 @@ const finalizeSchema = z.object({
 
 const sendWebhook = async (
   need: StructuredNeed,
+  canvas: UseCaseCanvas,
   recipientEmail?: string,
   transcript?: { role: string; content: string }[],
 ) => {
@@ -25,6 +28,7 @@ const sendWebhook = async (
       type: "bms-agentic-need",
       capturedAt: new Date().toISOString(),
       structuredNeed: need,
+      useCaseCanvas: canvas,
       recipientEmail,
       transcript,
     }),
@@ -43,8 +47,23 @@ export async function POST(request: Request) {
   }
 
   try {
-    await sendWebhook(parsed.data.structuredNeed, parsed.data.recipientEmail, parsed.data.transcript);
-    return NextResponse.json({ ok: true });
+    const canvas = convertToCanvas(
+      parsed.data.structuredNeed,
+      parsed.data.recipientEmail ?? "anonymous",
+    );
+    
+    await sendWebhook(
+      parsed.data.structuredNeed,
+      canvas,
+      parsed.data.recipientEmail,
+      parsed.data.transcript,
+    );
+    
+    return NextResponse.json({ 
+      ok: true,
+      canvasId: canvas.id,
+      message: "Rapport envoyé ! Vous serez invité à voter pour les meilleurs canevas prochainement.",
+    });
   } catch (error) {
     console.error("finalize error", error);
     return NextResponse.json({ error: "Échec de la finalisation" }, { status: 500 });

@@ -198,11 +198,13 @@ export const AgentPlayground = () => {
         }),
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.error ?? "Échec de l'envoi");
       }
-      setFeedback("Synthèse envoyée au webhook (n8n).");
+      setFeedback(
+        data.message || "Synthèse envoyée au webhook (n8n). Vous serez invité à voter pour les meilleurs use cases prochainement.",
+      );
     } catch (error) {
       console.error(error);
       setFeedback("Impossible d'envoyer la synthèse. Vérifiez le webhook n8n.");
