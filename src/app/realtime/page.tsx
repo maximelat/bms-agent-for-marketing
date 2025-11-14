@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RealtimeConsole } from "@/components/RealtimeConsole";
 
 const realtimeOptions = [
   {
@@ -50,6 +51,8 @@ export default function RealtimePage() {
             ← Retour au questionnaire classique
           </Link>
         </header>
+
+        <RealtimeConsole />
 
         <section className="grid gap-6 rounded-3xl border border-white/10 bg-white/5 p-6 lg:grid-cols-2">
           <div className="space-y-3">

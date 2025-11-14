@@ -25,6 +25,7 @@ npm run dev          # http://localhost:3000
 | `OPENAI_MODEL_FAST` | modèle rapide (intro/contexte), défaut `gpt-5-nano` |
 | `OPENAI_MODEL_BALANCED` | modèle équilibré (exploration/pain points), défaut `gpt-5-mini` |
 | `OPENAI_MODEL_PREMIUM` | modèle premium (normalisation finale), défaut `gpt-5.1` |
+| `OPENAI_REALTIME_MODEL` | modèle pour WebRTC/audio (`gpt-realtime-mini` par défaut) |
 | `N8N_WEBHOOK_URL` | optionnel, webhook cible (défaut : URL fournie par Maxim) |
 
 ## Déploiement
@@ -59,7 +60,9 @@ Vous pouvez remplacer cette valeur via `N8N_WEBHOOK_URL` pour pointer vers une a
 
 ## Modalités Realtime / Audio
 
-Une page dédiée `/realtime` décrit les scénarios gpt-realtime / gpt-audio (sessions WebRTC ou réponses audio) afin de préparer les déclinaisons live d’Helios.
+- L’API `/api/realtime-session` génère un token éphémère (client secret) pour ouvrir une session WebRTC côté navigateur.
+- La page `/realtime` embarque un composant expérimental `RealtimeConsole` : connexion audio, logs, et envoi de texte via data channel.
+- Exemples audio (`gpt-audio` / `gpt-audio-mini`) et roadmap sont détaillés dans cette page pour préparer les déclinaisons live.
 
 ## Stack
 
