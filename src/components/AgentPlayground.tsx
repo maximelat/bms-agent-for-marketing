@@ -42,6 +42,7 @@ export const AgentPlayground = () => {
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const canFinalize = status === "ready" && structuredNeed.copilotOpportunities.length > 0;
   const emailIsValid = /\S+@\S+\.\S+/.test(recipientEmail.trim());
@@ -67,6 +68,10 @@ export const AgentPlayground = () => {
       console.error(error);
       setFeedback("Impossible de copier la transcription.");
     }
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const sendMessage = async () => {
@@ -103,6 +108,7 @@ export const AgentPlayground = () => {
       setPhase(data.phase as AgentPhase);
       setStatus(data.status === "ready" ? "ready" : "collect");
       setPreviousResponseId(data.responseId ?? null);
+      setTimeout(scrollToBottom, 100);
     } catch (error) {
       console.error(error);
       setMessages((prev) => [
@@ -260,6 +266,7 @@ export const AgentPlayground = () => {
               Helios réfléchit...
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
 
         <div className="mt-4 space-y-3">
