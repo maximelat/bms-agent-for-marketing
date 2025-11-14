@@ -252,8 +252,10 @@ export const AgentPlayground = () => {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
-      <section className="flex flex-col rounded-3xl border border-zinc-200 bg-white/90 p-6 shadow-lg" style={{ minHeight: "600px", maxHeight: "calc(100vh - 120px)" }}>
+    <div className="space-y-6">
+      {/* Bloc 1 : Chat (2/3) + Synthèse & Transcription (1/3) sur desktop */}
+      <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+        <section className="flex flex-col rounded-3xl border border-zinc-200 bg-white/90 p-6 shadow-lg" style={{ maxHeight: "calc(100vh - 200px)" }}>
         <header className="mb-5 flex flex-wrap items-center gap-3">
           {Object.entries(phaseLabels).map(([key, label]) => (
             <span
@@ -360,26 +362,12 @@ export const AgentPlayground = () => {
         </div>
       </section>
 
-      <div className="space-y-6 lg:h-full lg:overflow-y-auto lg:pr-2">
+      {/* Colonne droite : Synthèse + Transcription */}
+      <div className="space-y-6" style={{ maxHeight: "calc(100vh - 200px)", overflowY: "auto" }}>
         <SummaryPanel
           key={`summary-${messages.length}`}
           data={structuredNeed}
           phase={phaseLabels[phase]}
-        />
-        
-        <CanvasCard
-          canvas={useMemo(() => convertToCanvas(structuredNeed, recipientEmail || "preview"), [structuredNeed, recipientEmail])}
-          isPreview
-          onUpdateFit={(importance: FitLevel, frequency: FitLevel) => {
-            setStructuredNeed((prev) => ({
-              ...prev,
-              strategicFit: {
-                ...prev.strategicFit,
-                importance,
-                frequency,
-              },
-            }));
-          }}
         />
 
         <div className="space-y-3 rounded-2xl border border-zinc-200 bg-white/80 p-5 shadow-sm">
@@ -419,6 +407,25 @@ export const AgentPlayground = () => {
             )}
           </div>
         </div>
+      </div>
+    </div>
+
+      {/* Bloc 2 : Canevas Use Case (pleine largeur) */}
+      <div className="rounded-3xl border border-zinc-200 bg-white/90 p-6 shadow-lg">
+        <CanvasCard
+          canvas={useMemo(() => convertToCanvas(structuredNeed, recipientEmail || "preview"), [structuredNeed, recipientEmail])}
+          isPreview
+          onUpdateFit={(importance: FitLevel, frequency: FitLevel) => {
+            setStructuredNeed((prev) => ({
+              ...prev,
+              strategicFit: {
+                ...prev.strategicFit,
+                importance,
+                frequency,
+              },
+            }));
+          }}
+        />
       </div>
     </div>
   );
