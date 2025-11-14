@@ -199,8 +199,8 @@ export const AgentPlayground = () => {
   };
 
   return (
-    <div className="grid gap-6 lg:h-full lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)] lg:overflow-hidden">
-      <section className="flex flex-col rounded-3xl border border-zinc-200 bg-white/90 p-6 shadow-lg lg:h-full lg:overflow-hidden">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+      <section className="flex flex-col rounded-3xl border border-zinc-200 bg-white/90 p-6 shadow-lg" style={{ minHeight: "600px", maxHeight: "calc(100vh - 120px)" }}>
         <header className="mb-5 flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 rounded-full border border-emerald-200 bg-white/70 p-1 text-xs font-semibold text-emerald-700">
             <button

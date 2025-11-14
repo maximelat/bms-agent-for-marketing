@@ -72,6 +72,14 @@ export async function POST(request: Request) {
 
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const model = selectModelForPhase(parsed.data.phase);
+  
+  if (!model) {
+    return NextResponse.json(
+      { error: "Aucun modèle sélectionné pour cette phase." },
+      { status: 500 },
+    );
+  }
+
   const useReasoningAPI = isReasoningModel(model);
 
   try {
