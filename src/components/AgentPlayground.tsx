@@ -253,7 +253,7 @@ export const AgentPlayground = () => {
       const data = await response.json();
       if (response.ok && data.normalizedNeed) {
         setStructuredNeed(data.normalizedNeed);
-        setFeedback("✅ Canevas mis à jour avec GPT-5.1 !");
+        setFeedback("✅ Canevas complété automatiquement !");
       } else {
         setFeedback("⚠️ Normalisation partielle.");
       }
@@ -383,7 +383,7 @@ export const AgentPlayground = () => {
                 disabled={isNormalizing}
                 className="ml-auto rounded-full bg-purple-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-purple-700 disabled:opacity-50"
               >
-                {isNormalizing ? "🔄 GPT-5.1..." : "🤖 Mettre à jour canevas (GPT-5.1)"}
+                {isNormalizing ? "🔄 Analyse..." : "🤖 Compléter le canevas"}
               </button>
             )}
           </div>
