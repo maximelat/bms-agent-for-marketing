@@ -24,16 +24,25 @@ IMPORTANT : utilise EN PRIORITÉ les données de structuredNeed qui sont déjà 
 
 OUTPUT attendu (JSON strict) :
 {
-  "problemToSolve": "phrase synthétique du problème métier",
-  "useCaseDescription": "description claire de l'agent Copilot imaginé",
-  "dataAndProductUsed": ["Source 1 (localisation)", "Source 2", "Outil M365"],
-  "businessObjective": "objectif métier mesurable",
-  "keyResults": ["KPI mesurable 1", "KPI mesurable 2"],
-  "stakeholders": ["Rôle impliqué 1", "Rôle 2"],
-  "strategicFit": {
-    "importance": "low" | "medium" | "high",
-    "frequency": "low" | "medium" | "high",
-    "rationale": "justification de l'évaluation importance x fréquence"
+  "normalizedCanvas": {
+    "problemToSolve": "phrase synthétique du problème métier",
+    "useCaseDescription": "description claire de l'agent Copilot imaginé",
+    "dataAndProductUsed": ["Source 1 (localisation)", "Source 2", "Outil M365"],
+    "businessObjective": "objectif métier mesurable",
+    "keyResults": ["KPI mesurable 1", "KPI mesurable 2"],
+    "stakeholders": ["Rôle impliqué 1", "Rôle 2"],
+    "strategicFit": {
+      "importance": "low" | "medium" | "high",
+      "frequency": "low" | "medium" | "high",
+      "rationale": "justification de l'évaluation importance x fréquence"
+    }
+  },
+  "structuredNeedUpdate": {
+    "persona": { "role": "...", "businessUnit": "...", ... },
+    "painPoints": [{ "theme": "...", "impact": "...", "frequency": "high", ... }],
+    "dataFootprint": { "sources": [{ "label": "...", "location": "SharePoint", ... }] },
+    "copilotOpportunities": [{ "name": "...", "trigger": "...", "expectedOutput": "...", ... }],
+    "strategicFit": { "importance": "high", "frequency": "high", "rationale": "..." }
   }
 }
 

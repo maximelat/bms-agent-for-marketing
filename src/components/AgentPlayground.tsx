@@ -261,6 +261,7 @@ export const AgentPlayground = () => {
       const data = await response.json();
       if (response.ok && data.normalizedCanvas) {
         console.log("Normalized canvas received:", data.normalizedCanvas);
+        console.log("StructuredNeed update received:", data.structuredNeedUpdate);
         
         // Assurer que tous les champs requis existent
         const nc = {
@@ -276,17 +277,12 @@ export const AgentPlayground = () => {
         // Stocker le canevas normalisé pour affichage direct
         setNormalizedCanvas(nc);
         
-        // Mettre à jour aussi structuredNeed pour la cohérence
-        setStructuredNeed((prev) => ({
-          ...prev,
-          strategicFit: nc.strategicFit,
-          expectedOutcomes: {
-            ...prev.expectedOutcomes,
-            successKPIs: nc.keyResults,
-          },
-          summaryNote: nc.useCaseDescription,
-        }));
-        setFeedback("✅ Canevas normalisé par n8n ! Consultez le canevas ci-dessous.");
+        // Mettre à jour structuredNeed avec les données complètes depuis n8n
+        if (data.structuredNeedUpdate) {
+          setStructuredNeed((prev) => mergeStructuredNeed(prev, data.structuredNeedUpdate));
+        }
+        
+        setFeedback("✅ Canevas et synthèse normalisés par n8n ! Consultez les sections ci-dessous.");
       } else {
         setFeedback("⚠️ Normalisation partielle (n8n).");
       }

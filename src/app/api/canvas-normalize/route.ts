@@ -51,24 +51,29 @@ export async function POST(request: Request) {
 
     const rawData = await response.json();
     
-    // n8n peut renvoyer soit { normalizedCanvas: ... } soit [{ output: "..." }]
+    // n8n peut renvoyer soit { normalizedCanvas: ..., structuredNeedUpdate: ... } soit [{ output: "..." }]
     let normalizedCanvas;
+    let structuredNeedUpdate;
     
     if (Array.isArray(rawData) && rawData[0]?.output) {
       // Format n8n avec output stringifié
       const outputString = rawData[0].output;
-      const parsed = JSON.parse(outputString);
-      normalizedCanvas = parsed.normalizedCanvas;
+      const parsedOutput = JSON.parse(outputString);
+      normalizedCanvas = parsedOutput.normalizedCanvas;
+      structuredNeedUpdate = parsedOutput.structuredNeedUpdate;
     } else if (rawData.normalizedCanvas) {
       // Format direct
       normalizedCanvas = rawData.normalizedCanvas;
+      structuredNeedUpdate = rawData.structuredNeedUpdate;
     } else {
       normalizedCanvas = rawData;
+      structuredNeedUpdate = {};
     }
 
     return NextResponse.json({
       success: true,
       normalizedCanvas,
+      structuredNeedUpdate,
     });
   } catch (error) {
     console.error("canvas-normalize error", error);
