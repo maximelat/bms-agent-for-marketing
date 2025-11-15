@@ -57,16 +57,18 @@ Règles :
 
 ## User Message (construit dynamiquement par n8n)
 
-Dans le champ "User Message" du nœud OpenAI, mets :
+Dans le champ "User Message" du nœud OpenAI, mets simplement le dernier message utilisateur :
 
 ```
-Phase actuelle : {{ $json.body.phase || "contexte" }}
-
-Historique de conversation :
-{{ $json.body.messages.map(m => (m.role === "assistant" ? "Helios" : "Utilisateur") + ": " + m.content).join("\n\n") }}
-
-Analyse cet échange et produis la prochaine question selon la phase actuelle.
+{{ $json.body.message }}
 ```
+
+**Important** : configure la **mémoire de conversation** dans le nœud OpenAI :
+- Active "Chat Memory" ou "Conversation Buffer Memory"
+- Utilise `{{ $json.body.sessionId }}` comme clé de session
+- Limite : 10-15 derniers messages
+
+Ainsi n8n garde automatiquement le contexte entre les tours sans que Helios renvoie tout l'historique.
 
 ---
 

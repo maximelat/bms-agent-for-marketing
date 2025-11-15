@@ -94,15 +94,15 @@ export const AgentPlayground = () => {
     setTimeout(scrollToBottom, 50); // Scroll immédiatement après affichage du message user
 
     try {
-      // Router via n8n webhook
+      // Router via n8n webhook - envoyer uniquement le dernier message
       const response = await fetch("/api/chat-webhook", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: nextMessages,
+          message: userMessage.content,
           phase,
           agentVersion,
-          previousResponseId: previousResponseId ?? undefined,
+          sessionId: previousResponseId || `session-${Date.now()}`,
         }),
       });
 
