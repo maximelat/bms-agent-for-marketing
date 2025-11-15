@@ -33,11 +33,11 @@ const REASONING_MODELS = ["gpt-5.1", "gpt-5", "gpt-5-mini", "gpt-5-nano", "o3", 
 
 const selectModelForPhase = (phase?: AgentPhase) => {
   if (phase === "normalisation") {
-    return (
+      return (
       process.env.OPENAI_MODEL_PREMIUM?.trim() ||
       process.env.OPENAI_MODEL?.trim() ||
-      "gpt-5.1"
-    );
+        "gpt-5.1"
+      );
   }
 
   // Toutes les autres phases utilisent un modèle rapide sans reasoning
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
     if (useReasoningAPI) {
       // Modèle reasoning → Responses API
       const systemMessage: EasyInputMessage = {
-        role: "system",
+          role: "system",
         content: [{ type: "input_text", text: systemPrompt }],
       };
 
@@ -103,20 +103,20 @@ export async function POST(request: Request) {
               role: "assistant",
               status: "completed",
               type: "message",
-              content: [
-                {
+          content: [
+            {
                   type: "output_text",
                   text: message.content,
                   annotations: [],
-                },
-              ],
+            },
+          ],
             };
             return assistantMessage;
           }
 
           const userMessage: EasyInputMessage = {
-            role: message.role,
-            content: [{ type: "input_text", text: message.content }],
+          role: message.role,
+          content: [{ type: "input_text", text: message.content }],
           };
           return userMessage;
         },
@@ -135,11 +135,11 @@ export async function POST(request: Request) {
           ? { previous_response_id: parsed.data.previousResponseId }
           : {}),
         input,
-      });
+    });
 
-      const raw =
-        (completion.output ?? [])
-          .flatMap((item: any) => item.content ?? [])
+    const raw =
+      (completion.output ?? [])
+        .flatMap((item: any) => item.content ?? [])
           .find((contentItem: any) => contentItem.type === "output_text")
           ?.text ?? "{}";
       
@@ -179,7 +179,7 @@ export async function POST(request: Request) {
       // Logger pour debug
       console.log("Chat Completions response JSON:", asJson);
       
-      const agent = agentResponseSchema.parse(asJson);
+    const agent = agentResponseSchema.parse(asJson);
 
       return NextResponse.json({
         ...agent,

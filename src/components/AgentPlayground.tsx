@@ -111,7 +111,7 @@ export const AgentPlayground = () => {
       
       // Mise à jour de la synthèse en parallèle
       if (data.normalizedUpdate) {
-        setStructuredNeed((prev) => mergeStructuredNeed(prev, data.normalizedUpdate));
+      setStructuredNeed((prev) => mergeStructuredNeed(prev, data.normalizedUpdate));
       }
       
       setPhase(data.phase as AgentPhase);

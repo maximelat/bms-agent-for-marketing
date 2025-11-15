@@ -21,17 +21,36 @@ const sendWebhook = async (
   transcript?: { role: string; content: string }[],
 ) => {
   const url = process.env.N8N_WEBHOOK_URL ?? fallbackWebhook;
+  
+  const payload = {
+    type: "bms-agentic-need",
+    capturedAt: new Date().toISOString(),
+    
+    // Format brut (pour archivage)
+    structuredNeed: need,
+    
+    // Format canevas (pour normalisation côté n8n)
+    useCaseCanvas: canvas,
+    
+    // Transcription complète (pour que l'agent n8n puisse analyser)
+    transcript: transcript || [],
+    transcriptText: transcript
+      ? transcript.map((m) => `${m.role === "assistant" ? "Helios" : "Utilisateur"}: ${m.content}`).join("\n\n")
+      : "",
+    
+    // Métadonnées
+    recipientEmail,
+    interviewDuration: transcript ? `${Math.ceil(transcript.length / 2)} échanges` : "N/A",
+    
+    // Statut pour n8n
+    needsNormalization: true, // Signal que n8n doit lancer l'agent
+    canvasId: canvas.id,
+  };
+  
   await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      type: "bms-agentic-need",
-      capturedAt: new Date().toISOString(),
-      structuredNeed: need,
-      useCaseCanvas: canvas,
-      recipientEmail,
-      transcript,
-    }),
+    body: JSON.stringify(payload),
   });
 };
 
