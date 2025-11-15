@@ -22,21 +22,21 @@ export async function POST(request: Request) {
       throw new Error(`n8n webhook error: ${response.status} - ${errorText.substring(0, 200)}`);
     }
 
-    const rawData = await response.text();
-    console.log("n8n raw response:", rawData.substring(0, 500));
-    
-    let data = JSON.parse(rawData);
+    let data = await response.json();
+    console.log("n8n parsed response:", JSON.stringify(data).substring(0, 500));
     
     // Parsing robuste : gérer les différents formats de réponse n8n
     
     // Cas 1 : [{ output: "stringified JSON" }]
     if (Array.isArray(data) && data[0]?.output) {
+      console.log("Detected array format, parsing output...");
       const outputString = data[0].output;
       const cleaned = outputString.trim()
         .replace(/^```json\s*/i, "")
         .replace(/^```\s*/i, "")
         .replace(/\s*```$/i, "");
       data = JSON.parse(cleaned);
+      console.log("Parsed from output:", data);
     }
     
     // Cas 2 : { message: { content: "stringified JSON" } }
