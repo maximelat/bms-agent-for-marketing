@@ -22,8 +22,8 @@ export default function Home() {
               Mode audio (Realtime)
             </Link>
             <span className="text-slate-500">·</span>
-            <Link href="/gallery" className="text-pink-300/70 underline underline-offset-4 transition hover:text-pink-300">
-              Galerie & votes
+            <Link href="/gallery" className="inline-flex items-center gap-1 text-pink-300 underline underline-offset-4 transition hover:text-pink-400">
+              🗳️ Voter pour un use case
             </Link>
           </div>
         </section>

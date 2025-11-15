@@ -238,30 +238,60 @@ export const AgentPlayground = () => {
     }
 
     setIsNormalizing(true);
-    setFeedback("🔄 Normalisation GPT-5.1 en cours...");
+    setFeedback("🔄 Envoi vers n8n pour normalisation...");
+
+    const canvasId = `canvas-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     try {
-      const response = await fetch("/api/normalize", {
+      const response = await fetch("/api/canvas-normalize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           structuredNeed,
           transcript: transcriptPayload,
+          canvasId,
         }),
       });
 
       const data = await response.json();
-      if (response.ok && data.normalizedNeed) {
-        setStructuredNeed(data.normalizedNeed);
-        setFeedback("✅ Canevas complété automatiquement !");
+      if (response.ok && data.normalizedCanvas) {
+        // Mettre à jour avec la réponse n8n
+        setStructuredNeed((prev) => ({
+          ...prev,
+          ...data.normalizedCanvas,
+        }));
+        setFeedback("✅ Canevas normalisé par n8n !");
       } else {
-        setFeedback("⚠️ Normalisation partielle.");
+        setFeedback("⚠️ Normalisation partielle (n8n).");
       }
     } catch (error) {
       console.error("manual normalization error", error);
-      setFeedback("Erreur lors de la normalisation.");
+      setFeedback("Erreur lors de la normalisation n8n.");
     } finally {
       setIsNormalizing(false);
+    }
+  };
+
+  const addToGallery = async () => {
+    const canvas = convertToCanvas(structuredNeed, recipientEmail || "anonymous");
+
+    try {
+      setFeedback("📤 Ajout à la galerie...");
+      const response = await fetch("/api/add-to-gallery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ canvas }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setFeedback(data.message || "✅ Canevas ajouté à la galerie !");
+      } else {
+        setFeedback("Impossible d'ajouter à la galerie.");
+      }
+    } catch (error) {
+      console.error("add-to-gallery error", error);
+      setFeedback("Erreur lors de l'ajout à la galerie.");
     }
   };
 
@@ -403,15 +433,26 @@ export const AgentPlayground = () => {
               <p className="text-xs text-amber-600">Saisissez une adresse valide avant l’envoi.</p>
             )}
           </div>
-          <button
-            type="button"
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:bg-zinc-200 disabled:text-zinc-400"
-            disabled={!canSendSummary || finalizing}
-            onClick={finalize}
-          >
-            {finalizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Envoyer le compte-rendu
-          </button>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <button
+              type="button"
+              className="flex items-center justify-center gap-2 rounded-2xl border-2 border-purple-600 bg-white px-4 py-3 text-sm font-semibold text-purple-600 transition hover:bg-purple-50 disabled:border-zinc-200 disabled:text-zinc-400"
+              disabled={structuredNeed.copilotOpportunities.length === 0}
+              onClick={addToGallery}
+            >
+              <Sparkles className="h-4 w-4" />
+              Ajouter à la galerie
+            </button>
+            <button
+              type="button"
+              className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:bg-zinc-200 disabled:text-zinc-400"
+              disabled={!canSendSummary || finalizing}
+              onClick={finalize}
+            >
+              {finalizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              Envoyer le compte-rendu
+            </button>
+          </div>
         </div>
       </section>
 
