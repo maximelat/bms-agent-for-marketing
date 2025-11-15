@@ -51,6 +51,31 @@ Règles :
 - En phase "normalisation", demande à l'utilisateur de cliquer sur le bouton violet "🤖 Compléter le canevas" pour finaliser automatiquement le use case avant l'envoi.
 - Encourage l'utilisateur à donner des chiffres (volumes, fréquences, temps).
 - Si l'utilisateur dévie, ramène la conversation sur les objectifs.
+
+Format attendu pour CHAQUE réponse (JSON strict, pas de texte avant/après) :
+{
+  "reply": "message conversationnel en français, ton professionnel et chaleureux. IMPORTANT : pour la phase copilot-lite, prends le temps d'expliquer en détail (5-7 phrases) les fonctionnalités de Copilot M365 et des agents déclaratifs avec des exemples concrets. Pour les autres phases, reste concis (≤3 phrases). Termine toujours par une question claire.",
+  "phase": "<EXACTEMENT une de ces valeurs: contexte, pain-points, donnees, copilot-lite, mon-ideal, normalisation>",
+  "status": "continue" ou "ready",
+  "normalizedUpdate": {
+     ... uniquement les champs du modèle StructuredNeed qui ont été clarifiés durant cet échange (voir structure ci-dessous) ...
+  }
+}
+
+IMPORTANT : utilise "copilot-lite" (pas "copilot") et "mon-ideal" (pas "automation-avancee").
+
+Structure StructuredNeed pour normalizedUpdate (ne remplis QUE les champs extraits de la réponse utilisateur) :
+{
+  "persona": { "name": "...", "role": "...", "businessUnit": "...", "geography": "..." },
+  "painPoints": [{ "theme": "...", "rootCause": "...", "impact": "...", "frequency": "low|medium|high", "kpiAffected": "..." }],
+  "dataFootprint": {
+    "sources": [{ "label": "...", "location": "SharePoint|OneDrive|Teams|...", "dataType": "...", "sensitivity": "public|internal|confidential", "approximateVolume": "...", "refreshRate": "...", "ingestionNeed": "read|write|bi-directional", "owner": "..." }]
+  },
+  "copilotOpportunities": [{ "name": "...", "phase": "discover|design|execute|report", "trigger": "...", "inputSignals": ["..."], "expectedOutput": "...", "successMetric": "...", "priority": "must-have|should-have|nice-to-have" }],
+  "strategicFit": { "importance": "low|medium|high", "frequency": "low|medium|high", "rationale": "..." },
+  "expectedOutcomes": { "successKPIs": ["..."] },
+  "nextSteps": ["..."]
+}
 ```
 
 ---
@@ -72,26 +97,65 @@ Ainsi n8n garde automatiquement le contexte entre les tours sans que Helios renv
 
 ---
 
-## Nœud "Respond to Webhook" (dernier nœud)
+## Nœud "Respond to Webhook" (dernier nœud OBLIGATOIRE)
 
-Dans le nœud qui répond à Helios, configure :
+Le workflow n8n DOIT se terminer par un nœud "Respond to Webhook" pour renvoyer la réponse à Helios.
 
+### Configuration exacte
+
+**Response Code** : 200  
 **Response Body** :
+
+Si OpenAI retourne le JSON directement parsé dans `$json.message.content` :
 ```json
 {
-  "reply": "{{ $json.choices[0].message.content.reply }}",
-  "phase": "{{ $json.choices[0].message.content.phase }}",
-  "status": "{{ $json.choices[0].message.content.status }}",
-  "normalizedUpdate": {{ $json.choices[0].message.content.normalizedUpdate || {} }},
-  "responseId": "n8n-{{ $now }}"
+  "reply": "{{ $json.message.content.reply }}",
+  "phase": "{{ $json.message.content.phase }}",
+  "status": "{{ $json.message.content.status }}",
+  "normalizedUpdate": {{ $json.message.content.normalizedUpdate || {} }},
+  "responseId": "{{ $json.body.sessionId }}"
 }
 ```
 
-Ou si OpenAI retourne directement le JSON parsé :
-
-```json
-{{ $json.message.content }}
+Si OpenAI retourne un string JSON brut dans `$json.choices[0].message.content`, ajoute un nœud Code avant :
+```javascript
+const content = $input.item.json.choices[0].message.content;
+const parsed = JSON.parse(content);
+return {
+  json: {
+    reply: parsed.reply,
+    phase: parsed.phase,
+    status: parsed.status,
+    normalizedUpdate: parsed.normalizedUpdate || {},
+    responseId: $input.all()[0].json.body.sessionId
+  }
+};
 ```
+
+Puis dans "Respond to Webhook" :
+```json
+{{ $json }}
+```
+
+### Vérification du format
+
+La réponse finale envoyée à Helios DOIT être :
+```json
+{
+  "reply": "Bonjour, je suis Helios...",
+  "phase": "contexte",
+  "status": "continue",
+  "normalizedUpdate": { "persona": { "role": "Chef produit marketing" } },
+  "responseId": "session-1731612345678"
+}
+```
+
+Helios utilisera :
+- `reply` → affichage dans le chat
+- `phase` → badge phase active
+- `status` → activation bouton "Envoyer compte-rendu"
+- `normalizedUpdate` → mise à jour synthèse structurée
+- `responseId` → sessionId pour le prochain tour
 
 ---
 
