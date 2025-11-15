@@ -6,17 +6,26 @@ export async function POST(request: Request) {
   try {
     const payload = await request.json();
     
+    console.log("Sending to n8n:", { webhook: n8nWebhook, payload });
+    
     const response = await fetch(n8nWebhook, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
+    console.log("n8n response status:", response.status);
+
     if (!response.ok) {
-      throw new Error("n8n webhook error");
+      const errorText = await response.text();
+      console.error("n8n error response:", errorText);
+      throw new Error(`n8n webhook error: ${response.status} - ${errorText.substring(0, 200)}`);
     }
 
-    let data = await response.json();
+    const rawData = await response.text();
+    console.log("n8n raw response:", rawData.substring(0, 500));
+    
+    let data = JSON.parse(rawData);
     
     // Parsing robuste : gérer les différents formats de réponse n8n
     
