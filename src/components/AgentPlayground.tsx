@@ -280,12 +280,48 @@ export const AgentPlayground = () => {
         // Stocker le canevas normalisé pour affichage direct
         setNormalizedCanvas(nc);
         
-        // Mettre à jour structuredNeed avec les données complètes depuis n8n
-        if (data.structuredNeedUpdate) {
-          setStructuredNeed((prev) => mergeStructuredNeed(prev, data.structuredNeedUpdate));
-        }
+        // Mapper normalizedCanvas vers structuredNeed pour remplir la Synthèse structurée
+        setStructuredNeed((prev) => ({
+          ...prev,
+          persona: {
+            ...prev.persona,
+            role: nc.Persona || prev.persona.role,
+          },
+          painPoints: nc.painpoint && nc.painpoint !== "À définir"
+            ? [{ theme: nc.painpoint, rootCause: nc.problemToSolve, impact: "", frequency: nc.strategicFit.frequency, kpiAffected: "" }]
+            : prev.painPoints,
+          copilotOpportunities: nc.opportunitécopilot && nc.opportunitécopilot !== "À définir"
+            ? [{
+                name: nc.useCaseDescription.substring(0, 50),
+                phase: "discover" as const,
+                trigger: nc.opportunitécopilot,
+                inputSignals: nc.dataAndProductUsed.slice(0, 3),
+                expectedOutput: nc.useCaseDescription,
+                successMetric: nc.keyResults[0] || "",
+                priority: "must-have" as const,
+              }]
+            : prev.copilotOpportunities,
+          dataFootprint: {
+            ...prev.dataFootprint,
+            sources: nc.dataAndProductUsed.map((item: string) => ({
+              label: item.split("(")[0]?.trim() || item,
+              location: (item.includes("SharePoint") ? "SharePoint" : item.includes("Teams") ? "Teams" : "Other") as any,
+              dataType: "",
+              sensitivity: "internal" as const,
+              approximateVolume: "",
+              refreshRate: "",
+              ingestionNeed: "read" as const,
+              owner: "",
+            })),
+          },
+          strategicFit: nc.strategicFit,
+          expectedOutcomes: {
+            ...prev.expectedOutcomes,
+            successKPIs: nc.keyResults,
+          },
+        }));
         
-        setFeedback("✅ Canevas et synthèse normalisés par n8n ! Consultez les sections ci-dessous.");
+        setFeedback("✅ Canevas normalisé ! Consultez le canevas et la synthèse structurée.");
       } else {
         setFeedback("⚠️ Normalisation partielle (n8n).");
       }
