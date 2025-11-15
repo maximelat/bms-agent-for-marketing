@@ -555,9 +555,9 @@ export const AgentPlayground = () => {
               <button
                 type="button"
                 className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:bg-zinc-200 disabled:text-zinc-400"
-                disabled={!emailIsValid || finalizing || !normalizedCanvas}
+                disabled={!emailIsValid || finalizing || !isCanvasComplete}
                 onClick={finalize}
-                title={!normalizedCanvas ? "Complétez d'abord le canevas" : !emailIsValid ? "Saisissez un email valide" : "Envoyer le compte-rendu"}
+                title={!isCanvasComplete ? "Complétez d'abord tous les champs du canevas" : !emailIsValid ? "Saisissez un email valide" : "Envoyer le compte-rendu"}
               >
                 {finalizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                 Envoyer le compte-rendu
