@@ -255,12 +255,19 @@ export const AgentPlayground = () => {
 
       const data = await response.json();
       if (response.ok && data.normalizedCanvas) {
-        // Mettre à jour avec la réponse n8n
+        // Mapper normalizedCanvas vers structuredNeed
+        const nc = data.normalizedCanvas;
         setStructuredNeed((prev) => ({
           ...prev,
-          ...data.normalizedCanvas,
+          strategicFit: nc.strategicFit || prev.strategicFit,
+          expectedOutcomes: {
+            ...prev.expectedOutcomes,
+            successKPIs: nc.keyResults || prev.expectedOutcomes.successKPIs,
+          },
+          summaryNote: nc.useCaseDescription || prev.summaryNote,
+          // Le reste (painPoints, copilotOpportunities, etc.) reste inchangé
         }));
-        setFeedback("✅ Canevas normalisé par n8n !");
+        setFeedback("✅ Canevas normalisé par n8n ! Vérifiez la section 'Strategic fit'.");
       } else {
         setFeedback("⚠️ Normalisation partielle (n8n).");
       }
