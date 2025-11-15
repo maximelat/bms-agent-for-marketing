@@ -49,7 +49,22 @@ export async function POST(request: Request) {
       throw new Error("Webhook n8n a retourné une erreur");
     }
 
-    const normalizedCanvas = await response.json();
+    const rawData = await response.json();
+    
+    // n8n peut renvoyer soit { normalizedCanvas: ... } soit [{ output: "..." }]
+    let normalizedCanvas;
+    
+    if (Array.isArray(rawData) && rawData[0]?.output) {
+      // Format n8n avec output stringifié
+      const outputString = rawData[0].output;
+      const parsed = JSON.parse(outputString);
+      normalizedCanvas = parsed.normalizedCanvas;
+    } else if (rawData.normalizedCanvas) {
+      // Format direct
+      normalizedCanvas = rawData.normalizedCanvas;
+    } else {
+      normalizedCanvas = rawData;
+    }
 
     return NextResponse.json({
       success: true,
