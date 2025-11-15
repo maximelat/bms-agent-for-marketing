@@ -43,6 +43,7 @@ export const AgentPlayground = () => {
   const [previousResponseId, setPreviousResponseId] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [isNormalizing, setIsNormalizing] = useState(false);
+  const [normalizedCanvas, setNormalizedCanvas] = useState<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -255,7 +256,10 @@ export const AgentPlayground = () => {
 
       const data = await response.json();
       if (response.ok && data.normalizedCanvas) {
-        // Mapper normalizedCanvas vers structuredNeed
+        // Stocker le canevas normalisé pour affichage direct
+        setNormalizedCanvas(data.normalizedCanvas);
+        
+        // Mettre à jour aussi structuredNeed pour la cohérence
         const nc = data.normalizedCanvas;
         setStructuredNeed((prev) => ({
           ...prev,
@@ -265,9 +269,8 @@ export const AgentPlayground = () => {
             successKPIs: nc.keyResults || prev.expectedOutcomes.successKPIs,
           },
           summaryNote: nc.useCaseDescription || prev.summaryNote,
-          // Le reste (painPoints, copilotOpportunities, etc.) reste inchangé
         }));
-        setFeedback("✅ Canevas normalisé par n8n ! Vérifiez la section 'Strategic fit'.");
+        setFeedback("✅ Canevas normalisé par n8n ! Consultez le canevas ci-dessous.");
       } else {
         setFeedback("⚠️ Normalisation partielle (n8n).");
       }
@@ -514,9 +517,23 @@ export const AgentPlayground = () => {
       {/* Bloc 2 : Canevas Use Case (pleine largeur) - order-3 pour mobile */}
       <div className="order-3 rounded-3xl border border-zinc-200 bg-white/90 p-6 shadow-lg">
         <CanvasCard
-          canvas={useMemo(() => convertToCanvas(structuredNeed, recipientEmail || "preview"), [structuredNeed, recipientEmail])}
+          canvas={
+            normalizedCanvas
+              ? { ...normalizedCanvas, id: `canvas-${Date.now()}`, createdAt: new Date().toISOString(), submittedBy: recipientEmail || "preview", votes: 0, voters: [] }
+              : useMemo(() => convertToCanvas(structuredNeed, recipientEmail || "preview"), [structuredNeed, recipientEmail])
+          }
           isPreview
           onUpdateFit={(importance: FitLevel, frequency: FitLevel) => {
+            if (normalizedCanvas) {
+              setNormalizedCanvas((prev: any) => ({
+                ...prev,
+                strategicFit: {
+                  ...prev.strategicFit,
+                  importance,
+                  frequency,
+                },
+              }));
+            }
             setStructuredNeed((prev) => ({
               ...prev,
               strategicFit: {
