@@ -469,15 +469,15 @@ export const AgentPlayground = () => {
               <Sparkles className="h-4 w-4" />
               Ajouter à la galerie
             </button>
-            <button
+          <button
               type="button"
               className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:bg-zinc-200 disabled:text-zinc-400"
-              disabled={!canSendSummary || finalizing}
-              onClick={finalize}
-            >
-              {finalizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            disabled={!canSendSummary || finalizing}
+            onClick={finalize}
+          >
+            {finalizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
               Envoyer le compte-rendu
-            </button>
+          </button>
           </div>
         </div>
       </section>
@@ -532,31 +532,23 @@ export const AgentPlayground = () => {
 
       {/* Bloc 2 : Canevas Use Case (pleine largeur) - order-3 pour mobile */}
       <div className="order-3 rounded-3xl border border-zinc-200 bg-white/90 p-6 shadow-lg">
-        {normalizedCanvas ? (
-          <EditableCanvasCard
-            canvas={{
-              ...normalizedCanvas,
-              id: `canvas-${Date.now()}`,
-              createdAt: new Date().toISOString(),
-              submittedBy: recipientEmail || "preview",
-              votes: 0,
-              voters: [],
-            }}
-            onUpdate={(updatedCanvas: UseCaseCanvas) => {
-              setNormalizedCanvas(updatedCanvas);
-              // Sync avec structuredNeed
-              setStructuredNeed((prev) => ({
-                ...prev,
-                strategicFit: updatedCanvas.strategicFit,
-              }));
-            }}
-          />
-        ) : (
-          <CanvasCard
-            canvas={useMemo(() => convertToCanvas(structuredNeed, recipientEmail || "preview"), [structuredNeed, recipientEmail])}
-            isPreview
-            onUpdateFit={(importance: FitLevel, frequency: FitLevel) => {
-              setStructuredNeed((prev) => ({
+        <CanvasCard
+          canvas={
+            normalizedCanvas
+              ? {
+                  ...normalizedCanvas,
+                  id: `canvas-preview`,
+                  createdAt: new Date().toISOString(),
+                  submittedBy: recipientEmail || "preview",
+                  votes: 0,
+                  voters: [],
+                }
+              : convertToCanvas(structuredNeed, recipientEmail || "preview")
+          }
+          isPreview
+          onUpdateFit={(importance: FitLevel, frequency: FitLevel) => {
+            if (normalizedCanvas) {
+              setNormalizedCanvas((prev: any) => ({
                 ...prev,
                 strategicFit: {
                   ...prev.strategicFit,
@@ -564,9 +556,17 @@ export const AgentPlayground = () => {
                   frequency,
                 },
               }));
-            }}
-          />
-        )}
+            }
+            setStructuredNeed((prev) => ({
+              ...prev,
+              strategicFit: {
+                ...prev.strategicFit,
+                importance,
+                frequency,
+              },
+            }));
+          }}
+        />
       </div>
     </div>
   );
