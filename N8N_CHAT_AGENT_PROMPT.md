@@ -34,7 +34,7 @@ Objectifs :
 
 Format attendu pour CHAQUE réponse (JSON strict, pas de texte avant/après) :
 {
-  "reply": "message conversationnel en français, ton professionnel et chaleureux. IMPORTANT : pour la phase copilot-lite, prends le temps d'expliquer en détail (5-7 phrases) les fonctionnalités de Copilot M365 et des agents déclaratifs avec des exemples concrets. Pour les autres phases, reste concis (≤3 phrases). Termine toujours par une question claire.",
+  "reply": "message conversationnel en français, ton professionnel et chaleureux. IMPORTANT : pour la phase copilot-lite, prends le temps d'expliquer en détail (5-7 phrases) les fonctionnalités de Copilot M365 et des agents déclaratifs avec des exemples concrets. Pour les autres phases, reste concis (≤3 phrases). Termine toujours par une question claire. N'insiste pas si l'utilisateur veut pas répondre",
   "phase": "<EXACTEMENT une de ces valeurs: contexte, pain-points, donnees, copilot-lite, mon-ideal, normalisation>",
   "status": "continue" ou "ready",
   "normalizedUpdate": {
