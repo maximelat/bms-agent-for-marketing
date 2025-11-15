@@ -7,8 +7,10 @@ import { AgentPhase } from "@/lib/agentPrompt";
 import { mergeStructuredNeed } from "@/lib/mergeStructuredNeed";
 import { SummaryPanel } from "./SummaryPanel";
 import { CanvasCard } from "./CanvasCard";
+import { EditableCanvasCard } from "./EditableCanvasCard";
 import { convertToCanvas } from "@/lib/convertToCanvas";
 import { cn } from "@/lib/utils";
+import { UseCaseCanvas } from "@/lib/useCaseCanvas";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -92,7 +94,8 @@ export const AgentPlayground = () => {
     setTimeout(scrollToBottom, 50); // Scroll immédiatement après affichage du message user
 
     try {
-      const response = await fetch("/api/chat", {
+      // Router via n8n webhook
+      const response = await fetch("/api/chat-webhook", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -516,16 +519,31 @@ export const AgentPlayground = () => {
 
       {/* Bloc 2 : Canevas Use Case (pleine largeur) - order-3 pour mobile */}
       <div className="order-3 rounded-3xl border border-zinc-200 bg-white/90 p-6 shadow-lg">
-        <CanvasCard
-          canvas={
-            normalizedCanvas
-              ? { ...normalizedCanvas, id: `canvas-${Date.now()}`, createdAt: new Date().toISOString(), submittedBy: recipientEmail || "preview", votes: 0, voters: [] }
-              : useMemo(() => convertToCanvas(structuredNeed, recipientEmail || "preview"), [structuredNeed, recipientEmail])
-          }
-          isPreview
-          onUpdateFit={(importance: FitLevel, frequency: FitLevel) => {
-            if (normalizedCanvas) {
-              setNormalizedCanvas((prev: any) => ({
+        {normalizedCanvas ? (
+          <EditableCanvasCard
+            canvas={{
+              ...normalizedCanvas,
+              id: `canvas-${Date.now()}`,
+              createdAt: new Date().toISOString(),
+              submittedBy: recipientEmail || "preview",
+              votes: 0,
+              voters: [],
+            }}
+            onUpdate={(updatedCanvas: UseCaseCanvas) => {
+              setNormalizedCanvas(updatedCanvas);
+              // Sync avec structuredNeed
+              setStructuredNeed((prev) => ({
+                ...prev,
+                strategicFit: updatedCanvas.strategicFit,
+              }));
+            }}
+          />
+        ) : (
+          <CanvasCard
+            canvas={useMemo(() => convertToCanvas(structuredNeed, recipientEmail || "preview"), [structuredNeed, recipientEmail])}
+            isPreview
+            onUpdateFit={(importance: FitLevel, frequency: FitLevel) => {
+              setStructuredNeed((prev) => ({
                 ...prev,
                 strategicFit: {
                   ...prev.strategicFit,
@@ -533,17 +551,9 @@ export const AgentPlayground = () => {
                   frequency,
                 },
               }));
-            }
-            setStructuredNeed((prev) => ({
-              ...prev,
-              strategicFit: {
-                ...prev.strategicFit,
-                importance,
-                frequency,
-              },
-            }));
-          }}
-        />
+            }}
+          />
+        )}
       </div>
     </div>
   );
