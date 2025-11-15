@@ -20,7 +20,23 @@ const gridLevels: FitLevel[] = ["high", "medium", "low"]; // Ordre inversé pour
 export const CanvasCard = ({ canvas, isPreview = false, onUpdateFit }: Props) => {
   return (
     <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
-      {/* General section - fond gris */}
+      {/* Contexte rapide */}
+      <div className="grid gap-4 border-b border-zinc-200 bg-zinc-50 p-4 md:grid-cols-3">
+        <div>
+          <p className="text-xs font-semibold uppercase text-zinc-500">Persona</p>
+          <p className="mt-1 text-sm text-zinc-700">{canvas.Persona || "À définir"}</p>
+        </div>
+        <div>
+          <p className="text-xs font-semibold uppercase text-zinc-500">Pain point</p>
+          <p className="mt-1 text-sm text-zinc-700">{canvas.painpoint || "À définir"}</p>
+        </div>
+        <div>
+          <p className="text-xs font-semibold uppercase text-zinc-500">Opportunité Copilot</p>
+          <p className="mt-1 text-sm text-zinc-700">{canvas.opportunitécopilot || "À définir"}</p>
+        </div>
+      </div>
+
+      {/* General section */}
       <div className="bg-emerald-500 px-4 py-2">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-white">General</h3>
       </div>

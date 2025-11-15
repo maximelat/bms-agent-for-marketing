@@ -25,6 +25,9 @@ IMPORTANT : utilise EN PRIORITÉ les données de structuredNeed qui sont déjà 
 OUTPUT attendu (JSON strict) :
 {
   "normalizedCanvas": {
+    "Persona":"quel est le persona qui a rempli le business case",
+    "painpoint":"résumé en 5 mots du painpoint du persona",
+    "opportunitécopilot":"explique en une phrase courte pourquoi cet agent serait pertinent à implémenté compte tenu de l'ensemble du user case",
     "problemToSolve": "phrase synthétique du problème métier",
     "useCaseDescription": "description claire de l'agent Copilot imaginé",
     "dataAndProductUsed": ["Source 1 (localisation)", "Source 2", "Outil M365"],
@@ -36,13 +39,6 @@ OUTPUT attendu (JSON strict) :
       "frequency": "low" | "medium" | "high",
       "rationale": "justification de l'évaluation importance x fréquence"
     }
-  },
-  "structuredNeedUpdate": {
-    "persona": { "role": "...", "businessUnit": "...", ... },
-    "painPoints": [{ "theme": "...", "impact": "...", "frequency": "high", ... }],
-    "dataFootprint": { "sources": [{ "label": "...", "location": "SharePoint", ... }] },
-    "copilotOpportunities": [{ "name": "...", "trigger": "...", "expectedOutput": "...", ... }],
-    "strategicFit": { "importance": "high", "frequency": "high", "rationale": "..." }
   }
 }
 

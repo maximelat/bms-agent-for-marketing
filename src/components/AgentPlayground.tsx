@@ -265,6 +265,9 @@ export const AgentPlayground = () => {
         
         // Assurer que tous les champs requis existent
         const nc = {
+          Persona: data.normalizedCanvas.Persona || "À définir",
+          painpoint: data.normalizedCanvas.painpoint || "À définir",
+          opportunitécopilot: data.normalizedCanvas.opportunitécopilot || "À définir",
           problemToSolve: data.normalizedCanvas.problemToSolve || "À définir",
           useCaseDescription: data.normalizedCanvas.useCaseDescription || "À définir",
           dataAndProductUsed: Array.isArray(data.normalizedCanvas.dataAndProductUsed) ? data.normalizedCanvas.dataAndProductUsed : [],

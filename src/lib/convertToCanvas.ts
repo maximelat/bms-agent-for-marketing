@@ -64,10 +64,31 @@ export const convertToCanvas = (
       .filter(Boolean) as string[]),
   ];
 
+  // Générer les champs de contexte rapide
+  const personaDesc = need.persona.role
+    ? `${need.persona.name || "Anonyme"} ${need.persona.role} ${need.persona.businessUnit || ""}`
+    : "À définir";
+
+  const painpointSummary =
+    need.painPoints.length > 0
+      ? need.painPoints
+          .slice(0, 3)
+          .map((p) => p.theme)
+          .join(" • ")
+      : "À définir";
+
+  const opportunityCopilot =
+    need.copilotOpportunities.length > 0
+      ? `Propose ${need.copilotOpportunities[0].name} pour ${need.copilotOpportunities[0].trigger}`
+      : "À définir";
+
   return {
     id: generateUUID(),
     createdAt: new Date().toISOString(),
     submittedBy,
+    Persona: personaDesc,
+    painpoint: painpointSummary,
+    opportunitécopilot: opportunityCopilot,
     problemToSolve,
     useCaseDescription,
     dataAndProductUsed,
