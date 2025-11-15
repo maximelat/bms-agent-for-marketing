@@ -46,6 +46,7 @@ export const AgentPlayground = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isNormalizing, setIsNormalizing] = useState(false);
   const [normalizedCanvas, setNormalizedCanvas] = useState<any>(null);
+  const [isEditingCanvas, setIsEditingCanvas] = useState(false);
   const sessionIdRef = useRef(`session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -55,6 +56,17 @@ export const AgentPlayground = () => {
   const canFinalize = status === "ready" && structuredNeed.copilotOpportunities.length > 0;
   const emailIsValid = /\S+@\S+\.\S+/.test(recipientEmail.trim());
   const canSendSummary = canFinalize && emailIsValid;
+  
+  // Vérifier si le canevas est complet pour ajout à la galerie
+  const isCanvasComplete = normalizedCanvas && 
+    normalizedCanvas.Persona && normalizedCanvas.Persona !== "À définir" &&
+    normalizedCanvas.painpoint && normalizedCanvas.painpoint !== "À définir" &&
+    normalizedCanvas.opportunitécopilot && normalizedCanvas.opportunitécopilot !== "À définir" &&
+    normalizedCanvas.problemToSolve && normalizedCanvas.problemToSolve !== "À définir" &&
+    normalizedCanvas.useCaseDescription && normalizedCanvas.useCaseDescription !== "À définir" &&
+    normalizedCanvas.businessObjective && normalizedCanvas.businessObjective !== "À définir" &&
+    normalizedCanvas.keyResults && normalizedCanvas.keyResults.length > 0 &&
+    normalizedCanvas.stakeholders && normalizedCanvas.stakeholders.length > 0;
 
   const transcriptPayload = useMemo(
     () => messages.map((m) => ({ role: m.role, content: m.content })),
@@ -523,25 +535,34 @@ export const AgentPlayground = () => {
               <p className="text-xs text-amber-600">Saisissez une adresse valide avant l’envoi.</p>
             )}
           </div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            <button
-              type="button"
-              className="flex items-center justify-center gap-2 rounded-2xl border-2 border-purple-600 bg-white px-4 py-3 text-sm font-semibold text-purple-600 transition hover:bg-purple-50 disabled:border-zinc-200 disabled:text-zinc-400"
-              disabled={structuredNeed.copilotOpportunities.length === 0}
-              onClick={addToGallery}
-            >
-              <Sparkles className="h-4 w-4" />
-              Ajouter à la galerie
-            </button>
-          <button
-              type="button"
-              className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:bg-zinc-200 disabled:text-zinc-400"
-            disabled={!canSendSummary || finalizing}
-            onClick={finalize}
-          >
-            {finalizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-              Envoyer le compte-rendu
-          </button>
+          <div className="space-y-2">
+            {!isCanvasComplete && normalizedCanvas && (
+              <p className="text-xs text-amber-600">
+                ⚠️ Certains champs du canevas sont incomplets. Éditez-les avant d'ajouter à la galerie.
+              </p>
+            )}
+            <div className="grid gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                className="flex items-center justify-center gap-2 rounded-2xl border-2 border-purple-600 bg-white px-4 py-3 text-sm font-semibold text-purple-600 transition hover:bg-purple-50 disabled:border-zinc-200 disabled:text-zinc-400"
+                disabled={!isCanvasComplete}
+                onClick={addToGallery}
+                title={!isCanvasComplete ? "Complétez d'abord le canevas en cliquant sur le bouton violet" : "Ajouter à la galerie"}
+              >
+                <Sparkles className="h-4 w-4" />
+                Ajouter à la galerie
+              </button>
+              <button
+                type="button"
+                className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:bg-zinc-200 disabled:text-zinc-400"
+                disabled={!emailIsValid || finalizing || !normalizedCanvas}
+                onClick={finalize}
+                title={!normalizedCanvas ? "Complétez d'abord le canevas" : !emailIsValid ? "Saisissez un email valide" : "Envoyer le compte-rendu"}
+              >
+                {finalizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                Envoyer le compte-rendu
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -595,24 +616,62 @@ export const AgentPlayground = () => {
     </div>
 
       {/* Bloc 2 : Canevas Use Case (pleine largeur) - order-3 pour mobile */}
-      <div className="order-3 rounded-3xl border border-zinc-200 bg-white/90 p-6 shadow-lg">
-        <CanvasCard
-          canvas={
-            normalizedCanvas
-              ? {
-                  ...normalizedCanvas,
-                  id: `canvas-preview`,
-                  createdAt: new Date().toISOString(),
-                  submittedBy: recipientEmail || "preview",
-                  votes: 0,
-                  voters: [],
-                }
-              : convertToCanvas(structuredNeed, recipientEmail || "preview")
-          }
-          isPreview
-          onUpdateFit={(importance: FitLevel, frequency: FitLevel) => {
-            if (normalizedCanvas) {
-              setNormalizedCanvas((prev: any) => ({
+      <div className="order-3 space-y-4 rounded-3xl border border-zinc-200 bg-white/90 p-6 shadow-lg">
+        {normalizedCanvas && (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => setIsEditingCanvas(!isEditingCanvas)}
+              className="rounded-full border border-purple-600 bg-white px-4 py-2 text-sm font-semibold text-purple-600 transition hover:bg-purple-50"
+            >
+              {isEditingCanvas ? "✓ Terminer l'édition" : "✏️ Éditer le canevas"}
+            </button>
+          </div>
+        )}
+        
+        {isEditingCanvas && normalizedCanvas ? (
+          <EditableCanvasCard
+            canvas={{
+              ...normalizedCanvas,
+              id: `canvas-preview`,
+              createdAt: new Date().toISOString(),
+              submittedBy: recipientEmail || "preview",
+              votes: 0,
+              voters: [],
+            }}
+            onUpdate={(updatedCanvas: UseCaseCanvas) => {
+              setNormalizedCanvas(updatedCanvas);
+              setIsEditingCanvas(false);
+              setFeedback("✅ Canevas mis à jour !");
+            }}
+          />
+        ) : (
+          <CanvasCard
+            canvas={
+              normalizedCanvas
+                ? {
+                    ...normalizedCanvas,
+                    id: `canvas-preview`,
+                    createdAt: new Date().toISOString(),
+                    submittedBy: recipientEmail || "preview",
+                    votes: 0,
+                    voters: [],
+                  }
+                : convertToCanvas(structuredNeed, recipientEmail || "preview")
+            }
+            isPreview
+            onUpdateFit={(importance: FitLevel, frequency: FitLevel) => {
+              if (normalizedCanvas) {
+                setNormalizedCanvas((prev: any) => ({
+                  ...prev,
+                  strategicFit: {
+                    ...prev.strategicFit,
+                    importance,
+                    frequency,
+                  },
+                }));
+              }
+              setStructuredNeed((prev) => ({
                 ...prev,
                 strategicFit: {
                   ...prev.strategicFit,
@@ -620,17 +679,9 @@ export const AgentPlayground = () => {
                   frequency,
                 },
               }));
-            }
-            setStructuredNeed((prev) => ({
-              ...prev,
-              strategicFit: {
-                ...prev.strategicFit,
-                importance,
-                frequency,
-              },
-            }));
-          }}
-        />
+            }}
+          />
+        )}
       </div>
     </div>
   );
