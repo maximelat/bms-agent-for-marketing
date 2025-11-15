@@ -8,10 +8,12 @@ const fallbackWebhook = "https://n8n-byhww-u43341.vm.elestio.app/webhook/b9b80ad
 
 const finalizeSchema = z.object({
   structuredNeed: z.custom<StructuredNeed>(),
+  useCaseCanvas: z.custom<UseCaseCanvas>().optional(),
   transcript: z
     .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string() }))
     .optional(),
   recipientEmail: z.string().email().optional(),
+  sessionId: z.string().optional(),
 });
 
 const sendWebhook = async (
@@ -66,7 +68,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const canvas = convertToCanvas(
+    // Utiliser le canevas fourni ou le générer
+    const canvas = parsed.data.useCaseCanvas || convertToCanvas(
       parsed.data.structuredNeed,
       parsed.data.recipientEmail ?? "anonymous",
     );

@@ -299,14 +299,28 @@ export const AgentPlayground = () => {
   };
 
   const addToGallery = async () => {
-    const canvas = convertToCanvas(structuredNeed, recipientEmail || "anonymous");
+    // Utiliser le canevas normalisé s'il existe, sinon convertir depuis structuredNeed
+    const canvas = normalizedCanvas
+      ? {
+          ...normalizedCanvas,
+          id: `canvas-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          createdAt: new Date().toISOString(),
+          submittedBy: recipientEmail || "anonymous",
+          votes: 0,
+          voters: [],
+        }
+      : convertToCanvas(structuredNeed, recipientEmail || "anonymous");
 
     try {
       setFeedback("📤 Ajout à la galerie...");
       const response = await fetch("/api/add-to-gallery", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ canvas }),
+        body: JSON.stringify({
+          canvas,
+          sessionId: sessionIdRef.current,
+          transcript: transcriptPayload,
+        }),
       });
 
       const data = await response.json();
@@ -324,14 +338,29 @@ export const AgentPlayground = () => {
   const finalize = async () => {
     setFinalizing(true);
     setFeedback(null);
+    
+    // Utiliser le canevas normalisé si disponible
+    const finalCanvas = normalizedCanvas
+      ? {
+          ...normalizedCanvas,
+          id: `canvas-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          createdAt: new Date().toISOString(),
+          submittedBy: recipientEmail || "anonymous",
+          votes: 0,
+          voters: [],
+        }
+      : convertToCanvas(structuredNeed, recipientEmail || "anonymous");
+    
     try {
       const response = await fetch("/api/finalize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           structuredNeed,
+          useCaseCanvas: finalCanvas,
           transcript: transcriptPayload,
           recipientEmail: recipientEmail.trim(),
+          sessionId: sessionIdRef.current,
         }),
       });
 
