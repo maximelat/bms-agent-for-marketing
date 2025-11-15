@@ -46,6 +46,7 @@ export const AgentPlayground = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isNormalizing, setIsNormalizing] = useState(false);
   const [normalizedCanvas, setNormalizedCanvas] = useState<any>(null);
+  const sessionIdRef = useRef(`session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -94,7 +95,7 @@ export const AgentPlayground = () => {
     setTimeout(scrollToBottom, 50); // Scroll immédiatement après affichage du message user
 
     try {
-      // Router via n8n webhook - envoyer uniquement le dernier message
+      // Router via n8n webhook - envoyer uniquement le dernier message avec sessionId fixe
       const response = await fetch("/api/chat-webhook", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -102,7 +103,7 @@ export const AgentPlayground = () => {
           message: userMessage.content,
           phase,
           agentVersion,
-          sessionId: previousResponseId || `session-${Date.now()}`,
+          sessionId: sessionIdRef.current,
         }),
       });
 
