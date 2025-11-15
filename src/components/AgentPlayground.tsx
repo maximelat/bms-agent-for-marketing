@@ -260,19 +260,31 @@ export const AgentPlayground = () => {
 
       const data = await response.json();
       if (response.ok && data.normalizedCanvas) {
+        console.log("Normalized canvas received:", data.normalizedCanvas);
+        
+        // Assurer que tous les champs requis existent
+        const nc = {
+          problemToSolve: data.normalizedCanvas.problemToSolve || "À définir",
+          useCaseDescription: data.normalizedCanvas.useCaseDescription || "À définir",
+          dataAndProductUsed: Array.isArray(data.normalizedCanvas.dataAndProductUsed) ? data.normalizedCanvas.dataAndProductUsed : [],
+          businessObjective: data.normalizedCanvas.businessObjective || "À définir",
+          keyResults: Array.isArray(data.normalizedCanvas.keyResults) ? data.normalizedCanvas.keyResults : [],
+          stakeholders: Array.isArray(data.normalizedCanvas.stakeholders) ? data.normalizedCanvas.stakeholders : [],
+          strategicFit: data.normalizedCanvas.strategicFit || { importance: "medium", frequency: "medium", rationale: "" },
+        };
+        
         // Stocker le canevas normalisé pour affichage direct
-        setNormalizedCanvas(data.normalizedCanvas);
+        setNormalizedCanvas(nc);
         
         // Mettre à jour aussi structuredNeed pour la cohérence
-        const nc = data.normalizedCanvas;
         setStructuredNeed((prev) => ({
           ...prev,
-          strategicFit: nc.strategicFit || prev.strategicFit,
+          strategicFit: nc.strategicFit,
           expectedOutcomes: {
             ...prev.expectedOutcomes,
-            successKPIs: nc.keyResults || prev.expectedOutcomes.successKPIs,
+            successKPIs: nc.keyResults,
           },
-          summaryNote: nc.useCaseDescription || prev.summaryNote,
+          summaryNote: nc.useCaseDescription,
         }));
         setFeedback("✅ Canevas normalisé par n8n ! Consultez le canevas ci-dessous.");
       } else {
