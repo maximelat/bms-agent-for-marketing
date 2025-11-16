@@ -21,12 +21,12 @@ export async function GET() {
     // n8n renvoie un array d'objets aplatis avec des clés comme "dataAndProductUsed[0]"
     // On doit reconstruire les objets propres
     const canvases = Array.isArray(rawData) ? rawData.map((row: any) => ({
-      id: row.id || `canvas-${row.row_number}`,
-      Persona: row.Persona || row.persona || "",
-      painpoint: row.painpoint || "",
-      opportunitécopilot: row.opportunitécopilot || "",
-      problemToSolve: row.problemToSolve || "",
-      useCaseDescription: row.useCaseDescription || "",
+      id: row.id || `canvas-${row.row_number || Date.now()}`,
+      Persona: row.Persona || row.persona || "À définir",
+      painpoint: row.painpoint || "À définir",
+      opportunitécopilot: row.opportunitécopilot || "À définir",
+      problemToSolve: row.problemToSolve || "À définir",
+      useCaseDescription: row.useCaseDescription || "À définir",
       dataAndProductUsed: (() => {
         try {
           return JSON.parse(row.dataAndProductUsed || "[]");
@@ -41,7 +41,7 @@ export async function GET() {
           return arr.length > 0 ? arr : ["À définir"];
         }
       })(),
-      businessObjective: row.businessObjective || "",
+      businessObjective: row.businessObjective || "À définir",
       keyResults: (() => {
         try {
           return JSON.parse(row.keyResults || "[]");
