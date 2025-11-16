@@ -310,26 +310,42 @@ export default function GalleryPage() {
                         )}
                         {templateData["Agent-Description"] && (
                           <div>
-                            <p className="text-xs text-slate-400">Description</p>
-                            <p className="text-sm text-slate-200">{templateData["Agent-Description"]}</p>
+                            <p className="text-xs text-slate-400 mb-2">Description</p>
+                            <div className="rounded-lg bg-black/30 p-3">
+                              <pre className="text-sm text-slate-200 whitespace-pre-wrap font-sans leading-relaxed">
+                                {templateData["Agent-Description"]}
+                              </pre>
+                            </div>
                           </div>
                         )}
                         {templateData["Agent-Instruction"] && (
                           <div>
-                            <p className="text-xs text-slate-400">Instructions</p>
-                            <p className="text-sm text-slate-200">{templateData["Agent-Instruction"]}</p>
+                            <p className="text-xs text-slate-400 mb-2">Instructions</p>
+                            <div className="rounded-lg bg-black/30 p-4 max-h-96 overflow-y-auto">
+                              <pre className="text-sm text-slate-200 whitespace-pre-wrap font-sans leading-relaxed">
+                                {templateData["Agent-Instruction"]}
+                              </pre>
+                            </div>
                           </div>
                         )}
                         {templateData["Agent-Knowledge"] && (
                           <div>
-                            <p className="text-xs text-slate-400">Connaissances</p>
-                            <p className="text-sm text-slate-200">{templateData["Agent-Knowledge"]}</p>
+                            <p className="text-xs text-slate-400 mb-2">Connaissances</p>
+                            <div className="rounded-lg bg-black/30 p-4 max-h-96 overflow-y-auto">
+                              <pre className="text-sm text-slate-200 whitespace-pre-wrap font-sans leading-relaxed">
+                                {templateData["Agent-Knowledge"]}
+                              </pre>
+                            </div>
                           </div>
                         )}
                         {templateData["Agent-capabilities"] && (
                           <div>
-                            <p className="text-xs text-slate-400">Capacités</p>
-                            <p className="text-sm text-slate-200">{templateData["Agent-capabilities"]}</p>
+                            <p className="text-xs text-slate-400 mb-2">Capacités</p>
+                            <div className="rounded-lg bg-black/30 p-4 max-h-96 overflow-y-auto">
+                              <pre className="text-sm text-slate-200 whitespace-pre-wrap font-sans leading-relaxed">
+                                {templateData["Agent-capabilities"]}
+                              </pre>
+                            </div>
                           </div>
                         )}
                       </div>

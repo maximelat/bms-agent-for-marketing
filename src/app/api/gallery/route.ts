@@ -126,14 +126,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const baseVoteUrl = process.env.N8N_WEBHOOK_VOTE || "https://n8n-byhww-u43341.vm.elestio.app/webhook/79f3c8db-9eb9-420a-b681-0db016ce6b00";
-    
-    // Construire l'URL avec les paramètres en query string pour GET
-    const voteUrl = `${baseVoteUrl}?email=${encodeURIComponent(voterEmail)}&id=${encodeURIComponent(canvasId)}`;
+    const voteUrl = process.env.N8N_WEBHOOK_VOTE || "https://n8n-byhww-u43341.vm.elestio.app/webhook/79f3c8db-9eb9-420a-b681-0db016ce6b00";
     
     const response = await fetch(voteUrl, {
-      method: "GET",
+      method: "POST",
       headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: voterEmail,
+        id: canvasId,
+      }),
     });
 
     if (!response.ok) {
