@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const GALLERY_API_URL = process.env.N8N_WEBHOOK_GET_GALLERY || "https://n8n-byhww-u43341.vm.elestio.app/webhook/5abf522a-fd25-4168-a020-f50f10024ffd";
-const UPDATE_CANVAS_URL = process.env.N8N_WEBHOOK_UPDATE_CANVAS || "https://n8n-byhww-u43341.vm.elestio.app/webhook/update-canvas";
+const CLASSIFY_WEBHOOK_URL = "https://n8n-byhww-u43341.vm.elestio.app/webhook/ca0d8010-e38f-464f-8f47-450134a08fb3";
 
 export async function POST() {
   try {
@@ -33,18 +33,30 @@ export async function POST() {
         canvas["strategicFit.frequency"] || "medium"
       );
 
-      // Mettre à jour le canvas dans n8n
-      await fetch(UPDATE_CANVAS_URL, {
+      // Envoyer à n8n pour stockage dans Google Sheets
+      const classificationData = {
+        id: canvas.id,
+        category,
+        strategicScore,
+        agentName,
+        agentDescription,
+        classifiedAt: new Date().toISOString(),
+      };
+
+      console.log("Sending classification for:", canvas.id, classificationData);
+
+      const updateResponse = await fetch(CLASSIFY_WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: canvas.id,
-          category,
-          strategicScore,
-        }),
+        body: JSON.stringify(classificationData),
       });
 
-      classified++;
+      if (updateResponse.ok) {
+        console.log(`✅ Canvas ${canvas.id} classified as ${category}`);
+        classified++;
+      } else {
+        console.error(`❌ Failed to classify canvas ${canvas.id}`);
+      }
     }
 
     return NextResponse.json({
