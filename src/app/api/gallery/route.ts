@@ -128,6 +128,9 @@ export async function POST(request: Request) {
 
     const voteUrl = process.env.N8N_WEBHOOK_VOTE || "https://n8n-byhww-u43341.vm.elestio.app/webhook/79f3c8db-9eb9-420a-b681-0db016ce6b00";
     
+    console.log("Sending vote to:", voteUrl);
+    console.log("Vote payload:", { email: voterEmail, id: canvasId });
+    
     const response = await fetch(voteUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -137,17 +140,35 @@ export async function POST(request: Request) {
       }),
     });
 
+    console.log("Vote response status:", response.status);
+    
     if (!response.ok) {
-      throw new Error("n8n vote endpoint error");
+      const errorText = await response.text();
+      console.error("n8n vote endpoint error:", errorText);
+      return NextResponse.json(
+        { error: `Erreur webhook n8n: ${response.status}`, details: errorText },
+        { status: 500 },
+      );
     }
 
-    const data = await response.json();
+    // Essayer de parser la réponse JSON, mais ne pas échouer si ce n'est pas du JSON
+    let data = null;
+    try {
+      const responseText = await response.text();
+      if (responseText) {
+        data = JSON.parse(responseText);
+      }
+    } catch (parseError) {
+      console.log("Response is not JSON, that's ok");
+    }
+    
+    console.log("Vote successful, response data:", data);
     
     return NextResponse.json({ success: true, data });
   } catch (error) {
-    console.error("vote error", error);
+    console.error("vote error (caught):", error);
     return NextResponse.json(
-      { error: "Impossible d'enregistrer le vote." },
+      { error: "Impossible d'enregistrer le vote.", details: error instanceof Error ? error.message : String(error) },
       { status: 500 },
     );
   }

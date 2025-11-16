@@ -331,20 +331,36 @@ export default function GalleryPage() {
                         {templateData["Agent-Knowledge"] && (
                           <div>
                             <p className="text-xs text-slate-400 mb-2">Connaissances</p>
-                            <div className="rounded-lg bg-black/30 p-4 max-h-96 overflow-y-auto">
-                              <pre className="text-sm text-slate-200 whitespace-pre-wrap font-sans leading-relaxed">
-                                {templateData["Agent-Knowledge"]}
-                              </pre>
+                            <div className="rounded-lg bg-black/30 p-4">
+                              <ul className="space-y-2">
+                                {(typeof templateData["Agent-Knowledge"] === 'string' 
+                                  ? JSON.parse(templateData["Agent-Knowledge"]) 
+                                  : templateData["Agent-Knowledge"]
+                                ).map((item: string, idx: number) => (
+                                  <li key={idx} className="flex items-start gap-2 text-sm text-slate-200">
+                                    <span className="text-purple-400 mt-1">•</span>
+                                    <span>{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
                           </div>
                         )}
                         {templateData["Agent-capabilities"] && (
                           <div>
                             <p className="text-xs text-slate-400 mb-2">Capacités</p>
-                            <div className="rounded-lg bg-black/30 p-4 max-h-96 overflow-y-auto">
-                              <pre className="text-sm text-slate-200 whitespace-pre-wrap font-sans leading-relaxed">
-                                {templateData["Agent-capabilities"]}
-                              </pre>
+                            <div className="rounded-lg bg-black/30 p-4">
+                              <ul className="space-y-2">
+                                {(typeof templateData["Agent-capabilities"] === 'string' 
+                                  ? JSON.parse(templateData["Agent-capabilities"]) 
+                                  : templateData["Agent-capabilities"]
+                                ).map((item: string, idx: number) => (
+                                  <li key={idx} className="flex items-start gap-2 text-sm text-slate-200">
+                                    <span className="text-purple-400 mt-1">•</span>
+                                    <span>{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
                           </div>
                         )}
