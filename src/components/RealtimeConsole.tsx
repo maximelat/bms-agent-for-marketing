@@ -341,8 +341,7 @@ export const RealtimeConsole = () => {
             <div className="space-y-2 text-white/80">
               <p className="text-sm font-semibold text-white">Persona</p>
               <p>
-                {report.persona.role ?? "Rôle ?"} · {report.persona.businessUnit ?? "BU ?"} ·{" "}
-                {report.persona.geography ?? "Zone ?"}
+                {report.persona.role ?? "Rôle ?"}
               </p>
               <p className="text-sm font-semibold text-white">Opportunités Copilot</p>
               <ul className="list-disc space-y-1 pl-4">

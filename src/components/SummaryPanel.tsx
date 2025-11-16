@@ -28,8 +28,7 @@ export const SummaryPanel = ({ data, phase }: Props) => {
       <section className="space-y-2">
         <h3 className="font-semibold text-zinc-800">Persona</h3>
         <p className="text-sm text-zinc-600">
-          {data.persona.role ?? "Rôle à préciser"} · {data.persona.businessUnit ?? "BU ?"} ·{" "}
-          {data.persona.geography ?? "Zone ?"}
+          {data.persona.role ?? "Rôle à préciser"}
         </p>
         {data.workflow.keyActivities?.length ? (
           <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-600">

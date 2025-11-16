@@ -508,16 +508,6 @@ export const AgentPlayground = () => {
           <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
             <span>Statut : {status === "ready" ? "Prêt pour synthèse" : "Collecte en cours"}</span>
             {feedback && <span className="text-amber-600">{feedback}</span>}
-            {messages.length >= 4 && (
-              <button
-                type="button"
-                onClick={triggerNormalization}
-                disabled={isNormalizing}
-                className="ml-auto rounded-full bg-purple-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-purple-700 disabled:opacity-50"
-              >
-                {isNormalizing ? "🔄 Analyse..." : "🤖 Compléter le canevas"}
-              </button>
-            )}
           </div>
           <div className="grid gap-2">
             <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
@@ -535,35 +525,16 @@ export const AgentPlayground = () => {
               <p className="text-xs text-amber-600">Saisissez une adresse valide avant l’envoi.</p>
             )}
           </div>
-          <div className="space-y-2">
-            {!isCanvasComplete && normalizedCanvas && (
-              <p className="text-xs text-amber-600">
-                ⚠️ Certains champs du canevas sont incomplets. Éditez-les avant d'ajouter à la galerie.
-              </p>
-            )}
-            <div className="grid gap-2 sm:grid-cols-2">
-              <button
-                type="button"
-                className="flex items-center justify-center gap-2 rounded-2xl border-2 border-purple-600 bg-white px-4 py-3 text-sm font-semibold text-purple-600 transition hover:bg-purple-50 disabled:border-zinc-200 disabled:text-zinc-400"
-                disabled={!isCanvasComplete}
-                onClick={addToGallery}
-                title={!isCanvasComplete ? "Complétez d'abord le canevas en cliquant sur le bouton violet" : "Ajouter à la galerie"}
-              >
-                <Sparkles className="h-4 w-4" />
-                Ajouter à la galerie
-              </button>
-              <button
-                type="button"
-                className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:bg-zinc-200 disabled:text-zinc-400"
-                disabled={!emailIsValid || finalizing || !isCanvasComplete}
-                onClick={finalize}
-                title={!isCanvasComplete ? "Complétez d'abord tous les champs du canevas" : !emailIsValid ? "Saisissez un email valide" : "Envoyer le compte-rendu"}
-              >
-                {finalizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                Envoyer le compte-rendu
-              </button>
-            </div>
-          </div>
+          <button
+            type="button"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:bg-zinc-200 disabled:text-zinc-400"
+            disabled={!emailIsValid || finalizing || !isCanvasComplete}
+            onClick={finalize}
+            title={!isCanvasComplete ? "Complétez d'abord tous les champs du canevas" : !emailIsValid ? "Saisissez un email valide" : "Envoyer le compte-rendu"}
+          >
+            {finalizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Envoyer le compte-rendu
+          </button>
         </div>
       </section>
 
@@ -617,17 +588,38 @@ export const AgentPlayground = () => {
 
       {/* Bloc 2 : Canevas Use Case (pleine largeur) - order-3 pour mobile */}
       <div className="order-3 space-y-4 rounded-3xl border border-zinc-200 bg-white/90 p-6 shadow-lg">
-        {normalizedCanvas && (
-          <div className="flex justify-end">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-zinc-900">Canevas Use Case</h3>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={triggerNormalization}
+              disabled={isNormalizing || messages.length < 6}
+              className="rounded-full bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-700 disabled:bg-zinc-300 disabled:text-zinc-500"
+              title={messages.length < 6 ? "Conversez davantage (au moins 3 échanges) avant de normaliser" : "Compléter automatiquement le canevas via n8n"}
+            >
+              {isNormalizing ? "🔄 Analyse..." : "🤖 Compléter le canevas"}
+            </button>
             <button
               type="button"
               onClick={() => setIsEditingCanvas(!isEditingCanvas)}
-              className="rounded-full border border-purple-600 bg-white px-4 py-2 text-sm font-semibold text-purple-600 transition hover:bg-purple-50"
+              disabled={!normalizedCanvas}
+              className="rounded-full border border-purple-600 bg-white px-4 py-2 text-sm font-semibold text-purple-600 transition hover:bg-purple-50 disabled:border-zinc-300 disabled:text-zinc-400"
+              title={!normalizedCanvas ? "Complétez d'abord le canevas automatiquement avant d'éditer" : "Éditer manuellement les champs"}
             >
-              {isEditingCanvas ? "✓ Terminer l'édition" : "✏️ Éditer le canevas"}
+              {isEditingCanvas ? "✓ Terminer l'édition" : "✏️ Éditer"}
             </button>
+            {isCanvasComplete && (
+              <button
+                type="button"
+                onClick={addToGallery}
+                className="rounded-full border-2 border-emerald-600 bg-white px-4 py-2 text-sm font-semibold text-emerald-600 transition hover:bg-emerald-50"
+              >
+                ➕ Ajouter à la galerie
+              </button>
+            )}
           </div>
-        )}
+        </div>
         
         {isEditingCanvas && normalizedCanvas ? (
           <EditableCanvasCard
