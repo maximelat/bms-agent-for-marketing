@@ -20,9 +20,16 @@ export default function GalleryPage() {
     try {
       const response = await fetch("/api/gallery");
       const data = await response.json();
-      setCanvases(data.canvases || []);
+      console.log("Gallery data received:", data);
+      
+      // S'assurer que canvases est bien un array
+      const canvasesArray = Array.isArray(data.canvases) ? data.canvases : [];
+      console.log("Canvases array:", canvasesArray.length, "items");
+      
+      setCanvases(canvasesArray);
     } catch (error) {
       console.error("fetch gallery error", error);
+      setCanvases([]);
     } finally {
       setLoading(false);
     }
