@@ -15,10 +15,72 @@ export async function GET() {
       throw new Error("n8n gallery endpoint error");
     }
 
-    const canvases = await response.json();
+    const rawData = await response.json();
+    console.log("Raw gallery data:", JSON.stringify(rawData).substring(0, 500));
+    
+    // n8n renvoie un array d'objets aplatis avec des clés comme "dataAndProductUsed[0]"
+    // On doit reconstruire les objets propres
+    const canvases = Array.isArray(rawData) ? rawData.map((row: any) => ({
+      id: row.id || `canvas-${row.row_number}`,
+      Persona: row.Persona || row.persona || "",
+      painpoint: row.painpoint || "",
+      opportunitécopilot: row.opportunitécopilot || "",
+      problemToSolve: row.problemToSolve || "",
+      useCaseDescription: row.useCaseDescription || "",
+      dataAndProductUsed: (() => {
+        try {
+          return JSON.parse(row.dataAndProductUsed || "[]");
+        } catch {
+          // Reconstruire depuis les clés individuelles
+          const arr = [];
+          for (let i = 0; i < 10; i++) {
+            if (row[`dataAndProductUsed[${i}]`]) {
+              arr.push(row[`dataAndProductUsed[${i}]`]);
+            }
+          }
+          return arr.length > 0 ? arr : ["À définir"];
+        }
+      })(),
+      businessObjective: row.businessObjective || "",
+      keyResults: (() => {
+        try {
+          return JSON.parse(row.keyResults || "[]");
+        } catch {
+          const arr = [];
+          for (let i = 0; i < 10; i++) {
+            if (row[`keyResults[${i}]`]) {
+              arr.push(row[`keyResults[${i}]`]);
+            }
+          }
+          return arr.length > 0 ? arr : [];
+        }
+      })(),
+      stakeholders: (() => {
+        try {
+          return JSON.parse(row.stakeholders || "[]");
+        } catch {
+          return [];
+        }
+      })(),
+      strategicFit: {
+        importance: row["strategicFit.importance"] || "medium",
+        frequency: row["strategicFit.frequency"] || "medium",
+        rationale: row["strategicFit.rationale"] || "",
+      },
+      votes: parseInt(row.votes) || 0,
+      voters: (() => {
+        try {
+          return JSON.parse(row.voters || "[]");
+        } catch {
+          return [];
+        }
+      })(),
+      createdAt: row.createdAt || new Date().toISOString(),
+      submittedBy: row.submittedBy || "anonymous",
+    })) : [];
     
     return NextResponse.json({
-      canvases: canvases || [],
+      canvases,
     });
   } catch (error) {
     console.error("gallery fetch error", error);
