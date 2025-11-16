@@ -43,7 +43,6 @@ export const AgentPlayground = () => {
   const [structuredNeed, setStructuredNeed] = useState<StructuredNeed>(defaultStructuredNeed);
   const [loading, setLoading] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
   const [agentVersion] = useState<"v1" | "v2">("v2");
   const [recipientEmail, setRecipientEmail] = useState("");
   const [previousResponseId, setPreviousResponseId] = useState<string | null>(null);
@@ -105,11 +104,9 @@ export const AgentPlayground = () => {
     if (!transcriptText) return;
     try {
       await navigator.clipboard.writeText(transcriptText);
-      setFeedback("Transcription copiée.");
-      addNotification("success", "Transcription copiée dans le presse-papier !");
+      addNotification("success", "📋 Transcription copiée dans le presse-papier !");
     } catch (error) {
       console.error(error);
-      setFeedback("Impossible de copier la transcription.");
       addNotification("error", "Impossible de copier la transcription.");
     }
   };
@@ -127,7 +124,6 @@ export const AgentPlayground = () => {
     setMessages(nextMessages);
     setInput("");
     setLoading(true);
-    setFeedback(null);
     setTimeout(scrollToBottom, 50); // Scroll immédiatement après affichage du message user
 
     try {
@@ -186,7 +182,7 @@ export const AgentPlayground = () => {
 
       // Notification si status passe à "ready"
       if (newStatus === "ready" && status !== "ready") {
-        setFeedback("✅ Analyse terminée ! Le rapport est prêt. Renseignez votre email pour l'envoyer.");
+        addNotification("success", "✅ Analyse terminée ! Le rapport est prêt.");
       }
     } catch (error) {
       console.error(error);
@@ -194,9 +190,9 @@ export const AgentPlayground = () => {
       // Vérifier si c'est une erreur HTML (504, 500...)
       const errorMessage = error instanceof Error ? error.message : String(error);
       if (errorMessage.includes("<!DOCTYPE") || errorMessage.includes("Unexpected token '<'")) {
-        setFeedback("⚠️ Le serveur a mis trop de temps à répondre. Réessayez ou reformulez votre message.");
+        addNotification("warning", "⚠️ Le serveur a mis trop de temps à répondre. Réessayez.");
       } else {
-        setFeedback("Erreur de dialogue, tentative suivante recommandée.");
+        addNotification("error", "Erreur de dialogue, tentative suivante recommandée.");
       }
       
       setMessages((prev) => [
@@ -255,11 +251,11 @@ export const AgentPlayground = () => {
           if (response.ok && data.text) {
             setInput((prev) => prev + (prev ? " " : "") + data.text);
           } else {
-            setFeedback("Impossible de transcrire l'audio.");
+            addNotification("error", "Impossible de transcrire l'audio.");
           }
         } catch (error) {
           console.error(error);
-          setFeedback("Erreur lors de la transcription.");
+          addNotification("error", "Erreur lors de la transcription.");
         }
 
         stream.getTracks().forEach((track) => track.stop());
@@ -269,18 +265,18 @@ export const AgentPlayground = () => {
       setIsRecording(true);
     } catch (error) {
       console.error(error);
-      setFeedback("Impossible d'accéder au micro.");
+      addNotification("error", "Impossible d'accéder au microphone.");
     }
   };
 
   const triggerNormalization = async () => {
     if (messages.length < 4) {
-      setFeedback("⚠️ Conversez davantage avant de normaliser (au moins 2 échanges).");
+      addNotification("warning", "⚠️ Conversez davantage avant de normaliser (au moins 2 échanges).");
       return;
     }
 
     setIsNormalizing(true);
-    setFeedback("🔄 Envoi vers n8n pour normalisation...");
+    addNotification("info", "🔄 Envoi vers n8n pour normalisation...");
 
     const canvasId = `canvas-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -358,13 +354,13 @@ export const AgentPlayground = () => {
           },
         }));
         
-        setFeedback("✅ Canevas normalisé ! Consultez le canevas et la synthèse structurée.");
+        addNotification("success", "✅ Canevas normalisé ! Consultez le canevas et la synthèse structurée.");
       } else {
-        setFeedback("⚠️ Normalisation partielle (n8n).");
+        addNotification("warning", "⚠️ Normalisation partielle (n8n).");
       }
     } catch (error) {
       console.error("manual normalization error", error);
-      setFeedback("Erreur lors de la normalisation n8n.");
+      addNotification("error", "Erreur lors de la normalisation n8n.");
     } finally {
       setIsNormalizing(false);
     }
@@ -388,8 +384,7 @@ export const AgentPlayground = () => {
         };
 
     try {
-      setFeedback("📤 Ajout à la galerie...");
-      addNotification("info", `Ajout du canevas à la galerie (${targetTeam})...`);
+      addNotification("info", `📤 Ajout du canevas à la galerie (${targetTeam})...`);
       setShowGalleryModal(false);
       
       const response = await fetch("/api/add-to-gallery", {
@@ -404,26 +399,22 @@ export const AgentPlayground = () => {
 
       const data = await response.json();
       if (response.ok) {
-        setFeedback(data.message || "✅ Canevas ajouté à la galerie !");
         addNotification("success", "🎉 Canevas ajouté à la galerie avec succès !");
         setAddedToGallery(true);
         
         // Animation du bouton - reset après 3 secondes
         setTimeout(() => setAddedToGallery(false), 3000);
       } else {
-        setFeedback("Impossible d'ajouter à la galerie.");
         addNotification("error", "Impossible d'ajouter le canevas à la galerie.");
       }
     } catch (error) {
       console.error("add-to-gallery error", error);
-      setFeedback("Erreur lors de l'ajout à la galerie.");
       addNotification("error", "Erreur lors de l'ajout à la galerie.");
     }
   };
 
   const finalize = async () => {
     setFinalizing(true);
-    setFeedback(null);
     
     // Utiliser le canevas normalisé si disponible
     const finalCanvas = normalizedCanvas
@@ -454,12 +445,10 @@ export const AgentPlayground = () => {
       if (!response.ok) {
         throw new Error(data.error ?? "Échec de l'envoi");
       }
-      setFeedback(
-        data.message || "Synthèse envoyée au webhook (n8n). Vous serez invité à voter pour les meilleurs use cases prochainement.",
-      );
+      addNotification("success", "📧 Synthèse envoyée avec succès ! Vous serez invité à voter prochainement.");
     } catch (error) {
       console.error(error);
-      setFeedback("Impossible d'envoyer la synthèse. Vérifiez le webhook n8n.");
+      addNotification("error", "Impossible d'envoyer la synthèse. Vérifiez le webhook n8n.");
     } finally {
       setFinalizing(false);
     }
@@ -588,7 +577,6 @@ export const AgentPlayground = () => {
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
             <span>Statut : {status === "ready" ? "Prêt pour synthèse" : "Collecte en cours"}</span>
-            {feedback && <span className="text-amber-600">{feedback}</span>}
           </div>
           <div className="grid gap-2">
             <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
@@ -721,7 +709,7 @@ export const AgentPlayground = () => {
             onUpdate={(updatedCanvas: UseCaseCanvas) => {
               setNormalizedCanvas(updatedCanvas);
               setIsEditingCanvas(false);
-              setFeedback("✅ Canevas mis à jour !");
+              addNotification("success", "✅ Canevas mis à jour !");
             }}
           />
         ) : (
