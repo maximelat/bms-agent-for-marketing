@@ -18,10 +18,15 @@ export async function GET() {
     const rawData = await response.json();
     console.log("Raw gallery data:", JSON.stringify(rawData).substring(0, 500));
     
-    // n8n renvoie un array d'objets aplatis avec des clés comme "dataAndProductUsed[0]"
+    // n8n renvoie soit un array (plusieurs lignes) soit un objet (une seule ligne)
+    const rows = Array.isArray(rawData) ? rawData : [rawData];
+    
+    // n8n renvoie des objets aplatis avec des clés comme "dataAndProductUsed[0]"
     // On doit reconstruire les objets propres
-    const canvases = Array.isArray(rawData) ? rawData.map((row: any) => ({
+    const canvases = rows.map((row: any) => ({
       id: row.id || `canvas-${row.row_number || Date.now()}`,
+      agentName: row["Agent-Name"] || row.agentName || "Agent sans nom",
+      agentDescription: row["Agent-Description"] || row.agentDescription || "",
       Persona: row.Persona || row.persona || "À définir",
       painpoint: row.painpoint || "À définir",
       opportunitécopilot: row.opportunitécopilot || "À définir",

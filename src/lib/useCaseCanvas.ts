@@ -5,6 +5,10 @@ export interface UseCaseCanvas {
   createdAt: string;
   submittedBy: string; // email de l'interviewé
   
+  // Nom et description agent (pour affichage accordéon)
+  agentName?: string;
+  agentDescription?: string;
+  
   // Contexte rapide
   Persona: string; // Description courte du persona
   painpoint: string; // Résumé pain points
