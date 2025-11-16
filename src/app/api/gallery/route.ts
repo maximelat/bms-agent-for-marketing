@@ -29,8 +29,14 @@ export async function GET() {
       useCaseDescription: row.useCaseDescription || "À définir",
       dataAndProductUsed: (() => {
         try {
-          return JSON.parse(row.dataAndProductUsed || "[]");
-        } catch {
+          // Nettoyer les caractères problématiques avant parsing
+          const cleaned = (row.dataAndProductUsed || "[]")
+            .replace(/–/g, "-")
+            .replace(/"/g, '"')
+            .replace(/"/g, '"');
+          return JSON.parse(cleaned);
+        } catch (e) {
+          console.error("Parse dataAndProductUsed error:", e);
           // Reconstruire depuis les clés individuelles
           const arr = [];
           for (let i = 0; i < 10; i++) {
@@ -44,8 +50,13 @@ export async function GET() {
       businessObjective: row.businessObjective || "À définir",
       keyResults: (() => {
         try {
-          return JSON.parse(row.keyResults || "[]");
-        } catch {
+          const cleaned = (row.keyResults || "[]")
+            .replace(/–/g, "-")
+            .replace(/"/g, '"')
+            .replace(/"/g, '"');
+          return JSON.parse(cleaned);
+        } catch (e) {
+          console.error("Parse keyResults error:", e);
           const arr = [];
           for (let i = 0; i < 10; i++) {
             if (row[`keyResults[${i}]`]) {
@@ -57,8 +68,13 @@ export async function GET() {
       })(),
       stakeholders: (() => {
         try {
-          return JSON.parse(row.stakeholders || "[]");
-        } catch {
+          const cleaned = (row.stakeholders || "[]")
+            .replace(/–/g, "-")
+            .replace(/"/g, '"')
+            .replace(/"/g, '"');
+          return JSON.parse(cleaned);
+        } catch (e) {
+          console.error("Parse stakeholders error:", e);
           return [];
         }
       })(),
