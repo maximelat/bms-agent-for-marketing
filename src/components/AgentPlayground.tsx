@@ -53,6 +53,7 @@ export const AgentPlayground = () => {
   const [isEditingCanvas, setIsEditingCanvas] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [addedToGallery, setAddedToGallery] = useState(false);
+  const [showGalleryModal, setShowGalleryModal] = useState(false);
   const sessionIdRef = useRef(`session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -139,6 +140,7 @@ export const AgentPlayground = () => {
           phase,
           agentVersion,
           sessionId: sessionIdRef.current,
+          team: teamCode || "public",
         }),
       });
 
@@ -368,11 +370,7 @@ export const AgentPlayground = () => {
     }
   };
 
-  const addToGallery = async () => {
-    // Demander si public ou équipe
-    const isPublic = confirm("Ajouter ce canevas en mode Public ?\n\nOK = Public\nAnnuler = Équipe actuelle");
-    const targetTeam = isPublic ? "public" : teamCode || "public";
-
+  const addToGallery = async (targetTeam: string) => {
     // Utiliser le canevas normalisé s'il existe, sinon convertir depuis structuredNeed
     const canvas = normalizedCanvas
       ? {
@@ -392,6 +390,7 @@ export const AgentPlayground = () => {
     try {
       setFeedback("📤 Ajout à la galerie...");
       addNotification("info", `Ajout du canevas à la galerie (${targetTeam})...`);
+      setShowGalleryModal(false);
       
       const response = await fetch("/api/add-to-gallery", {
         method: "POST",
@@ -694,7 +693,7 @@ export const AgentPlayground = () => {
             {isCanvasComplete && (
               <button
                 type="button"
-                onClick={addToGallery}
+                onClick={() => setShowGalleryModal(true)}
                 disabled={addedToGallery}
                 className={cn(
                   "rounded-full border-2 px-4 py-2 text-sm font-semibold transition-all duration-300",
@@ -766,6 +765,78 @@ export const AgentPlayground = () => {
 
       {/* Notifications en bas à gauche */}
       <NotificationContainer notifications={notifications} onClose={removeNotification} />
+
+      {/* Modal choix Public/Équipe */}
+      {showGalleryModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setShowGalleryModal(false)}
+        >
+          <div 
+            className="relative w-full max-w-md overflow-hidden rounded-2xl border border-zinc-300 bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* En-tête */}
+            <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-4">
+              <h3 className="text-xl font-bold text-white">Ajouter à la galerie</h3>
+              <p className="mt-1 text-sm text-emerald-50">Choisissez la visibilité de votre canevas</p>
+            </div>
+
+            {/* Contenu */}
+            <div className="p-6 space-y-4">
+              {/* Option Équipe actuelle */}
+              <button
+                onClick={() => addToGallery(teamCode || "public")}
+                className="w-full rounded-xl border-2 border-purple-500 bg-purple-50 p-4 text-left transition hover:bg-purple-100 hover:border-purple-600"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="rounded-full bg-purple-500 p-2 text-white">
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-zinc-900">Équipe : {teamCode || "public"}</p>
+                    <p className="mt-1 text-sm text-zinc-600">
+                      Visible uniquement pour les membres de votre équipe
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Option Public */}
+              <button
+                onClick={() => addToGallery("public")}
+                className="w-full rounded-xl border-2 border-emerald-500 bg-emerald-50 p-4 text-left transition hover:bg-emerald-100 hover:border-emerald-600"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="rounded-full bg-emerald-500 p-2 text-white">
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-zinc-900">Public</p>
+                    <p className="mt-1 text-sm text-zinc-600">
+                      Visible par tous les utilisateurs de la galerie
+                    </p>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* Pied de page */}
+            <div className="border-t border-zinc-200 bg-zinc-50 px-6 py-4">
+              <button
+                onClick={() => setShowGalleryModal(false)}
+                className="w-full rounded-xl bg-zinc-200 px-4 py-2 font-semibold text-zinc-700 transition hover:bg-zinc-300"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

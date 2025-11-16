@@ -20,6 +20,8 @@ export default function GalleryPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [teamFilter, setTeamFilter] = useState("");
   const [isTeamFilterActive, setIsTeamFilterActive] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [sortBy, setSortBy] = useState<"votes" | "category" | "strategic">("votes");
 
   useEffect(() => {
     fetchGallery();
@@ -47,12 +49,63 @@ export default function GalleryPage() {
   };
 
   const applyTeamFilter = (canvasArray: UseCaseCanvas[], filter: string, active: boolean) => {
+    let filtered: UseCaseCanvas[];
+    
     if (!active || !filter.trim()) {
       // Montrer seulement les publics si pas de filtre
-      setFilteredCanvases(canvasArray.filter(c => c.team === "public" || !c.team));
+      filtered = canvasArray.filter(c => c.team === "public" || !c.team);
     } else {
       // Filtrer par team spécifique
-      setFilteredCanvases(canvasArray.filter(c => c.team === filter.trim()));
+      filtered = canvasArray.filter(c => c.team === filter.trim());
+    }
+
+    // Appliquer le filtre catégorie si actif
+    if (categoryFilter) {
+      filtered = filtered.filter(c => c.category === categoryFilter);
+    }
+
+    setFilteredCanvases(filtered);
+  };
+
+  const handleCategoryFilter = (category: string) => {
+    setCategoryFilter(category);
+    applyTeamFilter(canvases, teamFilter, isTeamFilterActive);
+    if (category) {
+      addNotification("info", `Filtre catégorie "${category}" appliqué`);
+    }
+  };
+
+  const getUniqueCategories = () => {
+    // Récupérer les catégories de tous les canvas (avant filtre catégorie)
+    let baseCanvases = canvases;
+    if (isTeamFilterActive && teamFilter.trim()) {
+      baseCanvases = canvases.filter(c => c.team === teamFilter.trim());
+    } else {
+      baseCanvases = canvases.filter(c => c.team === "public" || !c.team);
+    }
+    
+    const categories = new Set(baseCanvases.map(c => c.category).filter(Boolean));
+    return Array.from(categories).sort();
+  };
+
+  const getSortedCanvases = () => {
+    let sorted = [...filteredCanvases];
+    
+    switch (sortBy) {
+      case "votes":
+        return sorted.sort((a, b) => b.votes - a.votes);
+      case "category":
+        return sorted.sort((a, b) => (a.category || "").localeCompare(b.category || ""));
+      case "strategic":
+        return sorted.sort((a, b) => {
+          const scoreA = (a.strategicFit.importance === "high" ? 3 : a.strategicFit.importance === "medium" ? 2 : 1) *
+                         (a.strategicFit.frequency === "high" ? 3 : a.strategicFit.frequency === "medium" ? 2 : 1);
+          const scoreB = (b.strategicFit.importance === "high" ? 3 : b.strategicFit.importance === "medium" ? 2 : 1) *
+                         (b.strategicFit.frequency === "high" ? 3 : b.strategicFit.frequency === "medium" ? 2 : 1);
+          return scoreB - scoreA;
+        });
+      default:
+        return sorted;
     }
   };
 
@@ -218,6 +271,44 @@ export default function GalleryPage() {
           </p>
         </div>
 
+        {/* Filtres et tri */}
+        <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-sm text-slate-200">
+                Filtrer par catégorie
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => handleCategoryFilter(e.target.value)}
+                  className="mt-2 w-full rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-white focus:border-purple-400 focus:outline-none"
+                >
+                  <option value="" className="bg-zinc-900">Toutes les catégories</option>
+                  {getUniqueCategories().map((cat) => (
+                    <option key={cat} value={cat} className="bg-zinc-900">
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            
+            <div>
+              <label className="block text-sm text-slate-200">
+                Trier par
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="mt-2 w-full rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-white focus:border-pink-400 focus:outline-none"
+                >
+                  <option value="votes" className="bg-zinc-900">🗳️ Nombre de votes</option>
+                  <option value="category" className="bg-zinc-900">📂 Catégorie métier</option>
+                  <option value="strategic" className="bg-zinc-900">⭐ Score strategic fit</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        </div>
+
         <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
           <label className="block text-sm text-slate-200">
             Votre email (pour enregistrer vos votes)
@@ -247,9 +338,7 @@ export default function GalleryPage() {
           </section>
         ) : (
           <div className="mt-12 space-y-6">
-            {filteredCanvases
-              .sort((a, b) => b.votes - a.votes)
-              .map((canvas) => {
+            {getSortedCanvases().map((canvas) => {
                 const isExpanded = expandedIds.has(canvas.id);
                 return (
                   <div key={canvas.id} className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-[0_35px_120px_rgba(5,5,18,0.8)]">
@@ -261,15 +350,27 @@ export default function GalleryPage() {
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 space-y-2">
-                          <h2 className="text-2xl font-bold text-white">
-                            {canvas.agentName || "Agent sans nom"}
-                          </h2>
+                          <div className="flex items-center gap-3">
+                            <h2 className="text-2xl font-bold text-white">
+                              {canvas.agentName || "Agent sans nom"}
+                            </h2>
+                            {canvas.category && (
+                              <span className="rounded-full bg-purple-600/30 px-3 py-1 text-xs font-semibold text-purple-300 border border-purple-500/50">
+                                {canvas.category}
+                              </span>
+                            )}
+                          </div>
                           <p className="text-base text-slate-300">
                             {canvas.agentDescription || "Description à définir"}
                           </p>
-                          <p className="text-xs font-mono text-slate-500">
-                            ID: {canvas.id}
-                          </p>
+                          <div className="flex items-center gap-3 text-xs">
+                            <span className="font-mono text-slate-500">ID: {canvas.id}</span>
+                            {canvas.team && canvas.team !== "public" && (
+                              <span className="rounded-full bg-blue-600/30 px-2 py-1 text-blue-300 border border-blue-500/50">
+                                📁 {canvas.team}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="text-right">
