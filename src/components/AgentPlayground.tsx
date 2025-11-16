@@ -11,6 +11,7 @@ import { EditableCanvasCard } from "./EditableCanvasCard";
 import { convertToCanvas } from "@/lib/convertToCanvas";
 import { cn } from "@/lib/utils";
 import { UseCaseCanvas } from "@/lib/useCaseCanvas";
+import { NotificationContainer, Notification } from "./Notification";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -47,6 +48,8 @@ export const AgentPlayground = () => {
   const [isNormalizing, setIsNormalizing] = useState(false);
   const [normalizedCanvas, setNormalizedCanvas] = useState<any>(null);
   const [isEditingCanvas, setIsEditingCanvas] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [addedToGallery, setAddedToGallery] = useState(false);
   const sessionIdRef = useRef(`session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -79,14 +82,25 @@ export const AgentPlayground = () => {
         .join("\n"),
     [transcriptPayload],
   );
+  const addNotification = (type: "success" | "error" | "info" | "warning", message: string, duration?: number) => {
+    const id = `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    setNotifications((prev) => [...prev, { id, type, message, duration }]);
+  };
+
+  const removeNotification = (id: string) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
+
   const copyTranscript = async () => {
     if (!transcriptText) return;
     try {
       await navigator.clipboard.writeText(transcriptText);
       setFeedback("Transcription copiée.");
+      addNotification("success", "Transcription copiée dans le presse-papier !");
     } catch (error) {
       console.error(error);
       setFeedback("Impossible de copier la transcription.");
+      addNotification("error", "Impossible de copier la transcription.");
     }
   };
 
@@ -360,6 +374,8 @@ export const AgentPlayground = () => {
 
     try {
       setFeedback("📤 Ajout à la galerie...");
+      addNotification("info", "Ajout du canevas à la galerie en cours...");
+      
       const response = await fetch("/api/add-to-gallery", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -373,12 +389,19 @@ export const AgentPlayground = () => {
       const data = await response.json();
       if (response.ok) {
         setFeedback(data.message || "✅ Canevas ajouté à la galerie !");
+        addNotification("success", "🎉 Canevas ajouté à la galerie avec succès !");
+        setAddedToGallery(true);
+        
+        // Animation du bouton - reset après 3 secondes
+        setTimeout(() => setAddedToGallery(false), 3000);
       } else {
         setFeedback("Impossible d'ajouter à la galerie.");
+        addNotification("error", "Impossible d'ajouter le canevas à la galerie.");
       }
     } catch (error) {
       console.error("add-to-gallery error", error);
       setFeedback("Erreur lors de l'ajout à la galerie.");
+      addNotification("error", "Erreur lors de l'ajout à la galerie.");
     }
   };
 
@@ -613,9 +636,15 @@ export const AgentPlayground = () => {
               <button
                 type="button"
                 onClick={addToGallery}
-                className="rounded-full border-2 border-emerald-600 bg-white px-4 py-2 text-sm font-semibold text-emerald-600 transition hover:bg-emerald-50"
+                disabled={addedToGallery}
+                className={cn(
+                  "rounded-full border-2 px-4 py-2 text-sm font-semibold transition-all duration-300",
+                  addedToGallery
+                    ? "border-emerald-600 bg-emerald-600 text-white scale-110 shadow-lg shadow-emerald-500/50"
+                    : "border-emerald-600 bg-white text-emerald-600 hover:bg-emerald-50"
+                )}
               >
-                ➕ Ajouter à la galerie
+                {addedToGallery ? "✅ Ajouté !" : "➕ Ajouter à la galerie"}
               </button>
             )}
           </div>
@@ -675,6 +704,9 @@ export const AgentPlayground = () => {
           />
         )}
       </div>
+
+      {/* Notifications en bas à gauche */}
+      <NotificationContainer notifications={notifications} onClose={removeNotification} />
     </div>
   );
 };

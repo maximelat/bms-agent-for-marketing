@@ -5,6 +5,7 @@ import { UseCaseCanvas } from "@/lib/useCaseCanvas";
 import { CanvasCard } from "@/components/CanvasCard";
 import { Loader2, ThumbsUp, ChevronDown, ChevronUp, FileText, Copy, X, Check } from "lucide-react";
 import Link from "next/link";
+import { NotificationContainer, Notification } from "@/components/Notification";
 
 export default function GalleryPage() {
   const [canvases, setCanvases] = useState<UseCaseCanvas[]>([]);
@@ -15,6 +16,7 @@ export default function GalleryPage() {
   const [templateData, setTemplateData] = useState<string>("");
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
     fetchGallery();
@@ -39,6 +41,15 @@ export default function GalleryPage() {
     }
   };
 
+  const addNotification = (type: "success" | "error" | "info" | "warning", message: string, duration?: number) => {
+    const id = `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    setNotifications((prev) => [...prev, { id, type, message, duration }]);
+  };
+
+  const removeNotification = (id: string) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
+
   const toggleExpanded = (canvasId: string) => {
     setExpandedIds((prev) => {
       const newSet = new Set(prev);
@@ -53,7 +64,7 @@ export default function GalleryPage() {
 
   const handleVote = async (canvasId: string) => {
     if (!userEmail || !userEmail.includes("@")) {
-      alert("Saisissez votre email avant de voter.");
+      addNotification("warning", "Saisissez votre email avant de voter.");
       return;
     }
 
@@ -67,17 +78,19 @@ export default function GalleryPage() {
       if (response.ok) {
         setVotedIds((prev) => new Set(prev).add(canvasId));
         await fetchGallery(); // Rafraîchir pour voir le nouveau compte
+        addNotification("success", "🗳️ Votre vote a été enregistré avec succès !");
       } else {
-        alert("Erreur lors du vote. Veuillez réessayer.");
+        addNotification("error", "Erreur lors du vote. Veuillez réessayer.");
       }
     } catch (error) {
       console.error("vote error", error);
-      alert("Erreur lors du vote. Veuillez réessayer.");
+      addNotification("error", "Erreur lors du vote. Veuillez réessayer.");
     }
   };
 
   const handleTemplateAgent = async (canvasId: string) => {
     try {
+      addNotification("info", "Récupération du template agent...");
       const response = await fetch(`/api/template-agent?id=${encodeURIComponent(canvasId)}`);
       
       if (response.ok) {
@@ -92,12 +105,13 @@ export default function GalleryPage() {
         setTemplateData(formattedData);
         setShowTemplateModal(true);
         setCopied(false);
+        addNotification("success", "Template agent récupéré avec succès !");
       } else {
-        alert("Erreur lors de la récupération du template agent.");
+        addNotification("error", "Erreur lors de la récupération du template agent.");
       }
     } catch (error) {
       console.error("template agent error", error);
-      alert("Erreur lors de la récupération du template agent.");
+      addNotification("error", "Erreur lors de la récupération du template agent.");
     }
   };
 
@@ -106,9 +120,10 @@ export default function GalleryPage() {
       await navigator.clipboard.writeText(templateData);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      addNotification("success", "📋 Template copié dans le presse-papier !");
     } catch (error) {
       console.error("Erreur lors de la copie", error);
-      alert("Erreur lors de la copie dans le presse-papier");
+      addNotification("error", "Erreur lors de la copie dans le presse-papier");
     }
   };
 
@@ -303,6 +318,9 @@ export default function GalleryPage() {
           </div>
         </div>
       )}
+
+      {/* Notifications en bas à gauche */}
+      <NotificationContainer notifications={notifications} onClose={removeNotification} />
     </div>
   );
 }
