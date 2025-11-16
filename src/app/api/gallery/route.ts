@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const fallbackGalleryUrl = "https://n8n-byhww-u43341.vm.elestio.app/webhook-test/5abf522a-fd25-4168-a020-f50f10024ffd";
+const fallbackGalleryUrl = "https://n8n-byhww-u43341.vm.elestio.app/webhook/5abf522a-fd25-4168-a020-f50f10024ffd";
 
 export async function GET() {
   try {
