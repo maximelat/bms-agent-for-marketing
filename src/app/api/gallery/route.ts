@@ -126,7 +126,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const voteUrl = process.env.N8N_WEBHOOK_VOTE || "https://n8n-byhww-u43341.vm.elestio.app/webhook/vote";
+    const voteUrl = process.env.N8N_WEBHOOK_VOTE || "https://n8n-byhww-u43341.vm.elestio.app/webhook/79f3c8db-9eb9-420a-b681-0db016ce6b00";
     
     const response = await fetch(voteUrl, {
       method: "POST",

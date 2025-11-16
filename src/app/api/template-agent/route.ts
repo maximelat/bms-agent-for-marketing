@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const templateAgentUrl = "https://n8n-byhww-u43341.vm.elestio.app/webhook-test/62269d79-d231-4ee7-8ea0-90371261bd21";
+const templateAgentUrl = "https://n8n-byhww-u43341.vm.elestio.app/webhook/62269d79-d231-4ee7-8ea0-90371261bd21";
 
 export async function GET(request: Request) {
   try {

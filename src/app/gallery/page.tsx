@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { UseCaseCanvas } from "@/lib/useCaseCanvas";
 import { CanvasCard } from "@/components/CanvasCard";
-import { Loader2, ThumbsUp, ChevronDown, ChevronUp, FileText } from "lucide-react";
+import { Loader2, ThumbsUp, ChevronDown, ChevronUp, FileText, Copy, X, Check } from "lucide-react";
 import Link from "next/link";
 
 export default function GalleryPage() {
@@ -12,6 +12,9 @@ export default function GalleryPage() {
   const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
   const [userEmail, setUserEmail] = useState("");
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [templateData, setTemplateData] = useState<string>("");
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetchGallery();
@@ -80,7 +83,15 @@ export default function GalleryPage() {
       if (response.ok) {
         const data = await response.json();
         console.log("Template agent data:", data);
-        alert("Template agent récupéré avec succès ! Consultez la console pour voir les données.");
+        
+        // Formatter les données pour affichage
+        const formattedData = typeof data === 'string' 
+          ? data 
+          : JSON.stringify(data, null, 2);
+        
+        setTemplateData(formattedData);
+        setShowTemplateModal(true);
+        setCopied(false);
       } else {
         alert("Erreur lors de la récupération du template agent.");
       }
@@ -88,6 +99,23 @@ export default function GalleryPage() {
       console.error("template agent error", error);
       alert("Erreur lors de la récupération du template agent.");
     }
+  };
+
+  const handleCopyTemplate = async () => {
+    try {
+      await navigator.clipboard.writeText(templateData);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error("Erreur lors de la copie", error);
+      alert("Erreur lors de la copie dans le presse-papier");
+    }
+  };
+
+  const closeTemplateModal = () => {
+    setShowTemplateModal(false);
+    setTemplateData("");
+    setCopied(false);
   };
 
   return (
@@ -221,6 +249,60 @@ export default function GalleryPage() {
           </div>
         )}
       </main>
+
+      {/* Modal Template Agent */}
+      {showTemplateModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={closeTemplateModal}
+        >
+          <div 
+            className="relative w-full max-w-4xl max-h-[80vh] overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-b from-[#0d0a16] to-[#05030a] shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* En-tête de la modal */}
+            <div className="flex items-center justify-between border-b border-white/10 bg-white/5 p-6">
+              <div className="flex items-center gap-3">
+                <FileText className="h-6 w-6 text-purple-400" />
+                <h3 className="text-2xl font-bold text-white">Template Agent</h3>
+              </div>
+              <button
+                onClick={closeTemplateModal}
+                className="rounded-full p-2 text-slate-400 transition hover:bg-white/10 hover:text-white"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Contenu du template */}
+            <div className="overflow-y-auto p-6" style={{ maxHeight: 'calc(80vh - 180px)' }}>
+              <pre className="rounded-xl border border-white/10 bg-black/40 p-4 text-sm text-slate-200 overflow-x-auto">
+                {templateData}
+              </pre>
+            </div>
+
+            {/* Pied de page avec bouton copier */}
+            <div className="border-t border-white/10 bg-white/5 p-6">
+              <button
+                onClick={handleCopyTemplate}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-purple-600 px-6 py-3 text-base font-semibold text-white transition hover:bg-purple-700"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-5 w-5" />
+                    Copié !
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-5 w-5" />
+                    Copier le template
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
