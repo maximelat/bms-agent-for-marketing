@@ -5,6 +5,10 @@ export interface UseCaseCanvas {
   createdAt: string;
   submittedBy: string; // email de l'interviewé
   
+  // Informations agent
+  agentName?: string; // Nom de l'agent
+  agentDescription?: string; // Description de l'agent
+  
   // Contexte rapide
   Persona: string; // Description courte du persona
   painpoint: string; // Résumé pain points
@@ -36,6 +40,8 @@ export const defaultUseCaseCanvas: UseCaseCanvas = {
   id: "",
   createdAt: "",
   submittedBy: "",
+  agentName: "",
+  agentDescription: "",
   Persona: "",
   painpoint: "",
   opportunitécopilot: "",

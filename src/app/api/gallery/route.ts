@@ -25,6 +25,8 @@ export async function GET() {
     // Reconstruire les objets propres
     const canvases = rows.map((row: any) => ({
       id: row.id || `canvas-${row.row_number || Date.now()}`,
+      agentName: row["Agent-Name"] || row.agentName || "Agent sans nom",
+      agentDescription: row["Agent-Description"] || row.agentDescription || "Description à définir",
       Persona: row.Persona || row.persona || "À définir",
       painpoint: row.painpoint || "À définir",
       opportunitécopilot: row.opportunitécopilot || "À définir",

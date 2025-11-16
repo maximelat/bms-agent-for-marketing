@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { UseCaseCanvas } from "@/lib/useCaseCanvas";
 import { CanvasCard } from "@/components/CanvasCard";
-import { Loader2, ThumbsUp } from "lucide-react";
+import { Loader2, ThumbsUp, ChevronDown, ChevronUp, FileText } from "lucide-react";
 import Link from "next/link";
 
 export default function GalleryPage() {
@@ -11,6 +11,7 @@ export default function GalleryPage() {
   const [loading, setLoading] = useState(true);
   const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
   const [userEmail, setUserEmail] = useState("");
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchGallery();
@@ -35,6 +36,18 @@ export default function GalleryPage() {
     }
   };
 
+  const toggleExpanded = (canvasId: string) => {
+    setExpandedIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(canvasId)) {
+        newSet.delete(canvasId);
+      } else {
+        newSet.add(canvasId);
+      }
+      return newSet;
+    });
+  };
+
   const handleVote = async (canvasId: string) => {
     if (!userEmail || !userEmail.includes("@")) {
       alert("Saisissez votre email avant de voter.");
@@ -51,9 +64,29 @@ export default function GalleryPage() {
       if (response.ok) {
         setVotedIds((prev) => new Set(prev).add(canvasId));
         await fetchGallery(); // Rafraîchir pour voir le nouveau compte
+      } else {
+        alert("Erreur lors du vote. Veuillez réessayer.");
       }
     } catch (error) {
       console.error("vote error", error);
+      alert("Erreur lors du vote. Veuillez réessayer.");
+    }
+  };
+
+  const handleTemplateAgent = async (canvasId: string) => {
+    try {
+      const response = await fetch(`/api/template-agent?id=${encodeURIComponent(canvasId)}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Template agent data:", data);
+        alert("Template agent récupéré avec succès ! Consultez la console pour voir les données.");
+      } else {
+        alert("Erreur lors de la récupération du template agent.");
+      }
+    } catch (error) {
+      console.error("template agent error", error);
+      alert("Erreur lors de la récupération du template agent.");
     }
   };
 
@@ -107,32 +140,84 @@ export default function GalleryPage() {
             </p>
           </section>
         ) : (
-          <div className="mt-12 space-y-8">
+          <div className="mt-12 space-y-6">
             {canvases
               .sort((a, b) => b.votes - a.votes)
-              .map((canvas) => (
-                <div key={canvas.id} className="relative">
-                  <CanvasCard canvas={canvas} />
-                  
-                  <div className="mt-4 flex items-center justify-between rounded-xl border border-white/10 bg-white/5 p-4">
-                    <div className="text-sm text-slate-200">
-                      <p className="font-semibold">{canvas.votes} vote{canvas.votes > 1 ? "s" : ""}</p>
-                      <p className="text-xs text-slate-400">
-                        Soumis par {canvas.submittedBy} le {new Date(canvas.createdAt).toLocaleDateString("fr-FR")}
-                      </p>
-                    </div>
+              .map((canvas) => {
+                const isExpanded = expandedIds.has(canvas.id);
+                return (
+                  <div key={canvas.id} className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-[0_35px_120px_rgba(5,5,18,0.8)]">
+                    {/* En-tête de l'accordéon */}
                     <button
                       type="button"
-                      onClick={() => handleVote(canvas.id)}
-                      disabled={votedIds.has(canvas.id) || canvas.voters.includes(userEmail)}
-                      className="flex items-center gap-2 rounded-full bg-pink-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-pink-700 disabled:bg-zinc-600 disabled:opacity-50"
+                      onClick={() => toggleExpanded(canvas.id)}
+                      className="w-full px-6 py-5 text-left transition hover:bg-white/10"
                     >
-                      <ThumbsUp className="h-4 w-4" />
-                      {votedIds.has(canvas.id) || canvas.voters.includes(userEmail) ? "Voté" : "Voter"}
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 space-y-2">
+                          <h2 className="text-2xl font-bold text-white">
+                            {canvas.agentName || "Agent sans nom"}
+                          </h2>
+                          <p className="text-base text-slate-300">
+                            {canvas.agentDescription || "Description à définir"}
+                          </p>
+                          <p className="text-xs font-mono text-slate-500">
+                            ID: {canvas.id}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <p className="text-lg font-semibold text-pink-300">{canvas.votes} vote{canvas.votes > 1 ? "s" : ""}</p>
+                            <p className="text-xs text-slate-400">
+                              {new Date(canvas.createdAt).toLocaleDateString("fr-FR")}
+                            </p>
+                          </div>
+                          {isExpanded ? (
+                            <ChevronUp className="h-6 w-6 text-pink-300" />
+                          ) : (
+                            <ChevronDown className="h-6 w-6 text-pink-300" />
+                          )}
+                        </div>
+                      </div>
                     </button>
+
+                    {/* Contenu de l'accordéon */}
+                    {isExpanded && (
+                      <div className="border-t border-white/10 p-6 space-y-6">
+                        <CanvasCard canvas={canvas} />
+                        
+                        <div className="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/5 p-4">
+                          <div className="text-sm text-slate-200">
+                            <p className="font-semibold">{canvas.votes} vote{canvas.votes > 1 ? "s" : ""}</p>
+                            <p className="text-xs text-slate-400">
+                              Soumis par {canvas.submittedBy}
+                            </p>
+                          </div>
+                          <div className="flex gap-3">
+                            <button
+                              type="button"
+                              onClick={() => handleVote(canvas.id)}
+                              disabled={votedIds.has(canvas.id) || canvas.voters.includes(userEmail)}
+                              className="flex items-center gap-2 rounded-full bg-pink-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-pink-700 disabled:bg-zinc-600 disabled:opacity-50"
+                            >
+                              <ThumbsUp className="h-4 w-4" />
+                              {votedIds.has(canvas.id) || canvas.voters.includes(userEmail) ? "Voté" : "Voter"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleTemplateAgent(canvas.id)}
+                              className="flex items-center gap-2 rounded-full bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-700"
+                            >
+                              <FileText className="h-4 w-4" />
+                              Template Agent
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
           </div>
         )}
       </main>
