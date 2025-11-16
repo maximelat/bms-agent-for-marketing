@@ -13,7 +13,7 @@ export default function GalleryPage() {
   const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
   const [userEmail, setUserEmail] = useState("");
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const [templateData, setTemplateData] = useState<string>("");
+  const [templateData, setTemplateData] = useState<any>(null);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -97,12 +97,10 @@ export default function GalleryPage() {
         const data = await response.json();
         console.log("Template agent data:", data);
         
-        // Formatter les données pour affichage
-        const formattedData = typeof data === 'string' 
-          ? data 
-          : JSON.stringify(data, null, 2);
+        // Extraire le premier élément si c'est un tableau
+        const templateInfo = Array.isArray(data) ? data[0] : data;
         
-        setTemplateData(formattedData);
+        setTemplateData(templateInfo);
         setShowTemplateModal(true);
         setCopied(false);
         addNotification("success", "Template agent récupéré avec succès !");
@@ -117,7 +115,8 @@ export default function GalleryPage() {
 
   const handleCopyTemplate = async () => {
     try {
-      await navigator.clipboard.writeText(templateData);
+      const textToCopy = JSON.stringify(templateData, null, 2);
+      await navigator.clipboard.writeText(textToCopy);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       addNotification("success", "📋 Template copié dans le presse-papier !");
@@ -129,7 +128,7 @@ export default function GalleryPage() {
 
   const closeTemplateModal = () => {
     setShowTemplateModal(false);
-    setTemplateData("");
+    setTemplateData(null);
     setCopied(false);
   };
 
@@ -290,10 +289,171 @@ export default function GalleryPage() {
             </div>
 
             {/* Contenu du template */}
-            <div className="overflow-y-auto p-6" style={{ maxHeight: 'calc(80vh - 180px)' }}>
-              <pre className="rounded-xl border border-white/10 bg-black/40 p-4 text-sm text-slate-200 overflow-x-auto">
-                {templateData}
-              </pre>
+            <div className="overflow-y-auto p-6 space-y-4" style={{ maxHeight: 'calc(80vh - 180px)' }}>
+              {templateData && (
+                <>
+                  {/* Informations Agent */}
+                  {(templateData["Agent-Name"] || templateData["Agent-Description"]) && (
+                    <div className="rounded-xl border border-purple-500/30 bg-gradient-to-br from-purple-900/30 to-purple-800/20 p-5">
+                      <h4 className="text-sm font-semibold uppercase tracking-wide text-purple-300 mb-3">🤖 Informations Agent</h4>
+                      <div className="space-y-2">
+                        {templateData["Agent-Name"] && (
+                          <div>
+                            <p className="text-xs text-slate-400">Nom de l'agent</p>
+                            <p className="text-base font-semibold text-white">{templateData["Agent-Name"]}</p>
+                          </div>
+                        )}
+                        {templateData["Agent-Description"] && (
+                          <div>
+                            <p className="text-xs text-slate-400">Description</p>
+                            <p className="text-sm text-slate-200">{templateData["Agent-Description"]}</p>
+                          </div>
+                        )}
+                        {templateData["Agent-Instruction"] && (
+                          <div>
+                            <p className="text-xs text-slate-400">Instructions</p>
+                            <p className="text-sm text-slate-200">{templateData["Agent-Instruction"]}</p>
+                          </div>
+                        )}
+                        {templateData["Agent-Knowledge"] && (
+                          <div>
+                            <p className="text-xs text-slate-400">Connaissances</p>
+                            <p className="text-sm text-slate-200">{templateData["Agent-Knowledge"]}</p>
+                          </div>
+                        )}
+                        {templateData["Agent-capabilities"] && (
+                          <div>
+                            <p className="text-xs text-slate-400">Capacités</p>
+                            <p className="text-sm text-slate-200">{templateData["Agent-capabilities"]}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Contexte rapide */}
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {templateData.persona && (
+                      <div className="rounded-xl border border-pink-500/30 bg-gradient-to-br from-pink-900/30 to-pink-800/20 p-4">
+                        <p className="text-xs font-semibold uppercase text-pink-300">Persona</p>
+                        <p className="mt-2 text-sm text-slate-200">{templateData.persona}</p>
+                      </div>
+                    )}
+                    {templateData.painpoint && (
+                      <div className="rounded-xl border border-orange-500/30 bg-gradient-to-br from-orange-900/30 to-orange-800/20 p-4">
+                        <p className="text-xs font-semibold uppercase text-orange-300">Pain point</p>
+                        <p className="mt-2 text-sm text-slate-200">{templateData.painpoint}</p>
+                      </div>
+                    )}
+                    {templateData.opportunitécopilot && (
+                      <div className="rounded-xl border border-teal-500/30 bg-gradient-to-br from-teal-900/30 to-teal-800/20 p-4">
+                        <p className="text-xs font-semibold uppercase text-teal-300">Opportunité Copilot</p>
+                        <p className="mt-2 text-sm text-slate-200">{templateData.opportunitécopilot}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* General */}
+                  <div className="rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-900/30 to-emerald-800/20 p-5">
+                    <h4 className="text-sm font-semibold uppercase tracking-wide text-emerald-300 mb-3">📋 General</h4>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {templateData.problemToSolve && (
+                        <div>
+                          <p className="text-xs text-slate-400">Problem to solve</p>
+                          <p className="mt-1 text-sm text-slate-200">{templateData.problemToSolve}</p>
+                        </div>
+                      )}
+                      {templateData.useCaseDescription && (
+                        <div>
+                          <p className="text-xs text-slate-400">Use case description</p>
+                          <p className="mt-1 text-sm text-slate-200">{templateData.useCaseDescription}</p>
+                        </div>
+                      )}
+                    </div>
+                    {templateData.dataAndProductUsed && (
+                      <div className="mt-4">
+                        <p className="text-xs text-slate-400">Data & product used</p>
+                        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-200">
+                          {(typeof templateData.dataAndProductUsed === 'string' 
+                            ? JSON.parse(templateData.dataAndProductUsed) 
+                            : templateData.dataAndProductUsed
+                          ).map((item: string, idx: number) => (
+                            <li key={idx}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Objectives & Key Results */}
+                  <div className="rounded-xl border border-blue-500/30 bg-gradient-to-br from-blue-900/30 to-blue-800/20 p-5">
+                    <h4 className="text-sm font-semibold uppercase tracking-wide text-blue-300 mb-3">🎯 Objectives & Key Results</h4>
+                    <div className="space-y-4">
+                      {templateData.businessObjective && (
+                        <div>
+                          <p className="text-xs text-slate-400">Business objective</p>
+                          <p className="mt-1 text-sm text-slate-200">{templateData.businessObjective}</p>
+                        </div>
+                      )}
+                      {templateData.keyResults && (
+                        <div>
+                          <p className="text-xs text-slate-400">Key results</p>
+                          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-200">
+                            {(typeof templateData.keyResults === 'string' 
+                              ? JSON.parse(templateData.keyResults) 
+                              : templateData.keyResults
+                            ).map((kr: string, idx: number) => (
+                              <li key={idx}>{kr}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {templateData.stakeholders && (
+                        <div>
+                          <p className="text-xs text-slate-400">Stakeholders</p>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {(typeof templateData.stakeholders === 'string' 
+                              ? JSON.parse(templateData.stakeholders) 
+                              : templateData.stakeholders
+                            ).map((sh: string, idx: number) => (
+                              <span key={idx} className="rounded-full bg-blue-600/30 px-3 py-1 text-xs text-blue-200">
+                                {sh}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Strategic Fit */}
+                  {(templateData["strategicFit.importance"] || templateData["strategicFit.frequency"]) && (
+                    <div className="rounded-xl border border-amber-500/30 bg-gradient-to-br from-amber-900/30 to-amber-800/20 p-5">
+                      <h4 className="text-sm font-semibold uppercase tracking-wide text-amber-300 mb-3">⭐ Strategic Fit</h4>
+                      <div className="grid gap-3 md:grid-cols-3">
+                        {templateData["strategicFit.importance"] && (
+                          <div>
+                            <p className="text-xs text-slate-400">Importance</p>
+                            <p className="mt-1 text-sm font-semibold text-white capitalize">{templateData["strategicFit.importance"]}</p>
+                          </div>
+                        )}
+                        {templateData["strategicFit.frequency"] && (
+                          <div>
+                            <p className="text-xs text-slate-400">Frequency</p>
+                            <p className="mt-1 text-sm font-semibold text-white capitalize">{templateData["strategicFit.frequency"]}</p>
+                          </div>
+                        )}
+                        {templateData["strategicFit.rationale"] && (
+                          <div className="md:col-span-3">
+                            <p className="text-xs text-slate-400">Rationale</p>
+                            <p className="mt-1 text-sm text-slate-200">{templateData["strategicFit.rationale"]}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             {/* Pied de page avec bouton copier */}

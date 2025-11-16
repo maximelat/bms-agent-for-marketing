@@ -61,9 +61,9 @@ export const EditableCanvasCard = ({ canvas, onUpdate }: Props) => {
   const currentCanvas = isEditing ? editedCanvas : canvas;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1625] to-[#0f0d1a] shadow-2xl">
       {/* Header avec bouton édition */}
-      <div className="flex items-center justify-between bg-emerald-500 px-4 py-2">
+      <div className="flex items-center justify-between bg-gradient-to-r from-emerald-600 to-emerald-700 px-4 py-2">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-white">Canevas Use Case</h3>
         {!isEditing ? (
           <button
@@ -79,7 +79,7 @@ export const EditableCanvasCard = ({ canvas, onUpdate }: Props) => {
             <button
               type="button"
               onClick={handleSave}
-              className="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-semibold text-emerald-600 transition hover:bg-white/90"
+              className="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-semibold text-emerald-400 transition hover:bg-white/90"
             >
               <Save className="h-3 w-3" />
               Sauvegarder
@@ -99,33 +99,33 @@ export const EditableCanvasCard = ({ canvas, onUpdate }: Props) => {
       {/* General section */}
       <div className="grid gap-4 p-4 md:grid-cols-3">
         <div>
-          <p className="text-xs font-semibold uppercase text-zinc-500">Problem to solve</p>
+          <p className="text-xs font-semibold uppercase text-slate-400">Problem to solve</p>
           {isEditing ? (
             <textarea
               value={currentCanvas.problemToSolve}
               onChange={(e) => updateField("problemToSolve", e.target.value)}
-              className="mt-1 w-full rounded border border-zinc-300 px-2 py-1 text-sm text-zinc-700 focus:border-emerald-500 focus:outline-none"
+              className="mt-1 w-full rounded border border-white/20 bg-white/10 px-2 py-1 text-sm text-slate-200 focus:border-emerald-500 focus:outline-none"
               rows={3}
             />
           ) : (
-            <p className="mt-1 text-sm text-zinc-700">{currentCanvas.problemToSolve || "En cours..."}</p>
+            <p className="mt-1 text-sm text-slate-200">{currentCanvas.problemToSolve || "En cours..."}</p>
           )}
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase text-zinc-500">Use case description</p>
+          <p className="text-xs font-semibold uppercase text-slate-400">Use case description</p>
           {isEditing ? (
             <textarea
               value={currentCanvas.useCaseDescription}
               onChange={(e) => updateField("useCaseDescription", e.target.value)}
-              className="mt-1 w-full rounded border border-zinc-300 px-2 py-1 text-sm text-zinc-700 focus:border-emerald-500 focus:outline-none"
+              className="mt-1 w-full rounded border border-white/20 bg-white/10 px-2 py-1 text-sm text-slate-200 focus:border-emerald-500 focus:outline-none"
               rows={3}
             />
           ) : (
-            <p className="mt-1 text-sm text-zinc-700">{currentCanvas.useCaseDescription || "En cours..."}</p>
+            <p className="mt-1 text-sm text-slate-200">{currentCanvas.useCaseDescription || "En cours..."}</p>
           )}
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase text-zinc-500">Data & product used</p>
+          <p className="text-xs font-semibold uppercase text-slate-400">Data & product used</p>
           {isEditing ? (
             <div className="mt-1 space-y-1">
               {currentCanvas.dataAndProductUsed.map((item, idx) => (
@@ -133,7 +133,7 @@ export const EditableCanvasCard = ({ canvas, onUpdate }: Props) => {
                   <input
                     value={item}
                     onChange={(e) => updateArrayField("dataAndProductUsed", idx, e.target.value)}
-                    className="flex-1 rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-700"
+                    className="flex-1 rounded border border-white/20 bg-white/10 px-2 py-1 text-xs text-slate-200"
                   />
                   <button
                     type="button"
@@ -147,13 +147,13 @@ export const EditableCanvasCard = ({ canvas, onUpdate }: Props) => {
               <button
                 type="button"
                 onClick={() => addArrayItem("dataAndProductUsed")}
-                className="text-xs text-emerald-600 hover:text-emerald-700"
+                className="text-xs text-emerald-400 hover:text-emerald-700"
               >
                 + Ajouter
               </button>
             </div>
           ) : (
-            <ul className="mt-1 list-disc space-y-1 pl-4 text-sm text-zinc-700">
+            <ul className="mt-1 list-disc space-y-1 pl-4 text-sm text-slate-200">
               {currentCanvas.dataAndProductUsed.slice(0, 3).map((item, idx) => (
                 <li key={idx}>{item}</li>
               ))}
@@ -163,27 +163,27 @@ export const EditableCanvasCard = ({ canvas, onUpdate }: Props) => {
       </div>
 
       {/* Objectives section */}
-      <div className="bg-emerald-500 px-4 py-2">
+      <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 px-4 py-2">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-white">
           Objectives & key results – Strategic fit assessment
         </h3>
       </div>
       <div className="grid gap-4 p-4 md:grid-cols-4">
         <div>
-          <p className="text-xs font-semibold uppercase text-zinc-500">Business objective</p>
+          <p className="text-xs font-semibold uppercase text-slate-400">Business objective</p>
           {isEditing ? (
             <textarea
               value={currentCanvas.businessObjective}
               onChange={(e) => updateField("businessObjective", e.target.value)}
-              className="mt-1 w-full rounded border border-zinc-300 px-2 py-1 text-sm text-zinc-700"
+              className="mt-1 w-full rounded border border-white/20 bg-white/10 px-2 py-1 text-sm text-slate-200"
               rows={3}
             />
           ) : (
-            <p className="mt-1 text-sm text-zinc-700">{currentCanvas.businessObjective || "En cours..."}</p>
+            <p className="mt-1 text-sm text-slate-200">{currentCanvas.businessObjective || "En cours..."}</p>
           )}
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase text-zinc-500">Key results</p>
+          <p className="text-xs font-semibold uppercase text-slate-400">Key results</p>
           {isEditing ? (
             <div className="mt-1 space-y-1">
               {currentCanvas.keyResults.map((kr, idx) => (
@@ -191,7 +191,7 @@ export const EditableCanvasCard = ({ canvas, onUpdate }: Props) => {
                   <input
                     value={kr}
                     onChange={(e) => updateArrayField("keyResults", idx, e.target.value)}
-                    className="flex-1 rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-700"
+                    className="flex-1 rounded border border-white/20 bg-white/10 px-2 py-1 text-xs text-slate-200"
                   />
                   <button
                     type="button"
@@ -205,13 +205,13 @@ export const EditableCanvasCard = ({ canvas, onUpdate }: Props) => {
               <button
                 type="button"
                 onClick={() => addArrayItem("keyResults")}
-                className="text-xs text-emerald-600"
+                className="text-xs text-emerald-400"
               >
                 + Ajouter
               </button>
             </div>
           ) : (
-            <ul className="mt-1 list-disc space-y-1 pl-4 text-sm text-zinc-700">
+            <ul className="mt-1 list-disc space-y-1 pl-4 text-sm text-slate-200">
               {currentCanvas.keyResults.map((kr, idx) => (
                 <li key={idx}>{kr}</li>
               ))}
@@ -219,7 +219,7 @@ export const EditableCanvasCard = ({ canvas, onUpdate }: Props) => {
           )}
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase text-zinc-500">Stakeholders</p>
+          <p className="text-xs font-semibold uppercase text-slate-400">Stakeholders</p>
           {isEditing ? (
             <div className="mt-1 space-y-1">
               {currentCanvas.stakeholders.map((sh, idx) => (
@@ -227,7 +227,7 @@ export const EditableCanvasCard = ({ canvas, onUpdate }: Props) => {
                   <input
                     value={sh}
                     onChange={(e) => updateArrayField("stakeholders", idx, e.target.value)}
-                    className="flex-1 rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-700"
+                    className="flex-1 rounded border border-white/20 bg-white/10 px-2 py-1 text-xs text-slate-200"
                   />
                   <button
                     type="button"
@@ -241,13 +241,13 @@ export const EditableCanvasCard = ({ canvas, onUpdate }: Props) => {
               <button
                 type="button"
                 onClick={() => addArrayItem("stakeholders")}
-                className="text-xs text-emerald-600"
+                className="text-xs text-emerald-400"
               >
                 + Ajouter
               </button>
             </div>
           ) : (
-            <ul className="mt-1 list-disc space-y-1 pl-4 text-sm text-zinc-700">
+            <ul className="mt-1 list-disc space-y-1 pl-4 text-sm text-slate-200">
               {currentCanvas.stakeholders.slice(0, 4).map((sh, idx) => (
                 <li key={idx}>{sh}</li>
               ))}
@@ -255,18 +255,18 @@ export const EditableCanvasCard = ({ canvas, onUpdate }: Props) => {
           )}
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase text-zinc-500">Strategic fit</p>
+          <p className="text-xs font-semibold uppercase text-slate-400">Strategic fit</p>
           <div className="relative mt-2">
             <div className="grid grid-cols-4 gap-[2px] text-[9px]">
               <div className="col-span-1" />
               {gridLevels.map((freq) => (
-                <div key={freq} className="text-center font-semibold text-zinc-500">
+                <div key={freq} className="text-center font-semibold text-slate-400">
                   {levelLabel[freq]}
                 </div>
               ))}
               {gridLevels.map((importance) => (
                 <>
-                  <div key={`label-${importance}`} className="flex items-center justify-end pr-1 text-right font-semibold text-zinc-500">
+                  <div key={`label-${importance}`} className="flex items-center justify-end pr-1 text-right font-semibold text-slate-400">
                     {levelLabel[importance]}
                   </div>
                   {gridLevels.map((frequency) => (
@@ -281,9 +281,9 @@ export const EditableCanvasCard = ({ canvas, onUpdate }: Props) => {
                         })
                       }
                       className={cn(
-                        "aspect-square rounded border border-zinc-300 bg-white transition hover:border-emerald-400 hover:bg-emerald-50 cursor-pointer",
+                        "aspect-square rounded border border-white/20 bg-white/10 transition hover:border-emerald-400 hover:bg-gradient-to-r from-emerald-600 to-emerald-700/30 cursor-pointer",
                         importance === currentCanvas.strategicFit.importance && frequency === currentCanvas.strategicFit.frequency
-                          ? "border-emerald-600 bg-emerald-400"
+                          ? "border-emerald-600 bg-gradient-to-r from-emerald-600 to-emerald-700"
                           : "",
                       )}
                       title={`Importance ${levelLabel[importance]} / Fréquence ${levelLabel[frequency]}`}
@@ -293,10 +293,10 @@ export const EditableCanvasCard = ({ canvas, onUpdate }: Props) => {
               ))}
             </div>
             
-            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[10px] font-semibold italic text-zinc-600">
+            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[10px] font-semibold italic text-slate-400">
               Frequency →
             </div>
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] font-semibold italic text-zinc-600" style={{ transformOrigin: "left center" }}>
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] font-semibold italic text-slate-400" style={{ transformOrigin: "left center" }}>
               Importance / Value ↑
             </div>
           </div>
@@ -311,11 +311,11 @@ export const EditableCanvasCard = ({ canvas, onUpdate }: Props) => {
                   })
                 }
                 placeholder="Rationale..."
-                className="w-full rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-700"
+                className="w-full rounded border border-white/20 bg-white/10 px-2 py-1 text-xs text-slate-200"
                 rows={2}
               />
             ) : (
-              <p className="text-xs italic text-zinc-600">
+              <p className="text-xs italic text-slate-400">
                 <span className="font-semibold">{levelLabel[currentCanvas.strategicFit.importance]}</span> importance / 
                 <span className="font-semibold"> {levelLabel[currentCanvas.strategicFit.frequency]}</span> frequency
               </p>
@@ -324,8 +324,8 @@ export const EditableCanvasCard = ({ canvas, onUpdate }: Props) => {
         </div>
       </div>
       
-      <div className="border-t border-zinc-200 bg-zinc-50 px-4 py-2 text-center">
-        <p className="text-xs text-zinc-500">
+      <div className="border-t border-white/10 bg-white/5 px-4 py-2 text-center">
+        <p className="text-xs text-slate-400">
           {isEditing ? "Mode édition · Modifiez les champs puis sauvegardez" : "Canevas normalisé · Cliquez sur 'Éditer' pour ajuster"}
         </p>
       </div>
