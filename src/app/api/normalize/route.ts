@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
   try {
     const systemPrompt = `
-Tu es un agent de normalisation pour les entretiens Copilot BMS.
+Tu es un agent de normalisation pour les entretiens Copilot pour des équipes de marketing en industrie pharmaceutique.
 À partir de la transcription et des données collectées, complète le canevas use case.
 
 IMPORTANT : produis un JSON valide strict. Évite les sauts de ligne dans les strings, échappe les guillemets.

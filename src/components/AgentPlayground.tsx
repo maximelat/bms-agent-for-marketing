@@ -31,6 +31,9 @@ const initialAssistantMessage =
   "Bonjour, je suis Helios. Prenons 15 minutes pour cartographier votre quotidien de chef·fe de produit marketing chez BMS. Pour commencer, décrivez votre rôle, les marchés couverts et les jalons critiques de vos semaines ?";
 
 export const AgentPlayground = () => {
+  const [teamCode, setTeamCode] = useState<string | null>(null);
+  const [teamInput, setTeamInput] = useState("");
+  const [showTeamSelector, setShowTeamSelector] = useState(true);
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: "assistant", content: initialAssistantMessage },
   ]);
@@ -55,6 +58,12 @@ export const AgentPlayground = () => {
   const audioChunksRef = useRef<Blob[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleTeamSelection = (team: string) => {
+    setTeamCode(team);
+    setShowTeamSelector(false);
+    addNotification("success", `Équipe "${team}" sélectionnée pour cette session`);
+  };
 
   const canFinalize = status === "ready" && structuredNeed.copilotOpportunities.length > 0;
   const emailIsValid = /\S+@\S+\.\S+/.test(recipientEmail.trim());
@@ -360,6 +369,10 @@ export const AgentPlayground = () => {
   };
 
   const addToGallery = async () => {
+    // Demander si public ou équipe
+    const isPublic = confirm("Ajouter ce canevas en mode Public ?\n\nOK = Public\nAnnuler = Équipe actuelle");
+    const targetTeam = isPublic ? "public" : teamCode || "public";
+
     // Utiliser le canevas normalisé s'il existe, sinon convertir depuis structuredNeed
     const canvas = normalizedCanvas
       ? {
@@ -367,14 +380,18 @@ export const AgentPlayground = () => {
           id: `canvas-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           createdAt: new Date().toISOString(),
           submittedBy: recipientEmail || "anonymous",
+          team: targetTeam,
           votes: 0,
           voters: [],
         }
-      : convertToCanvas(structuredNeed, recipientEmail || "anonymous");
+      : {
+          ...convertToCanvas(structuredNeed, recipientEmail || "anonymous"),
+          team: targetTeam,
+        };
 
     try {
       setFeedback("📤 Ajout à la galerie...");
-      addNotification("info", "Ajout du canevas à la galerie en cours...");
+      addNotification("info", `Ajout du canevas à la galerie (${targetTeam})...`);
       
       const response = await fetch("/api/add-to-gallery", {
         method: "POST",
@@ -448,6 +465,48 @@ export const AgentPlayground = () => {
       setFinalizing(false);
     }
   };
+
+  // Team selector avant le chat
+  if (showTeamSelector) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="w-full max-w-2xl rounded-3xl border border-zinc-200 bg-white/90 p-8 shadow-lg">
+          <h2 className="mb-4 text-2xl font-semibold text-zinc-900">Sélectionnez votre équipe</h2>
+          <p className="mb-6 text-sm text-zinc-600">
+            Cette information sera associée à toute la session et aux canvas créés.
+          </p>
+
+          <div className="space-y-4">
+            <div>
+              <input
+                type="text"
+                value={teamInput}
+                onChange={(e) => setTeamInput(e.target.value)}
+                placeholder="Code équipe"
+                className="w-full rounded-xl border border-zinc-300 px-4 py-3 text-zinc-900 placeholder:text-zinc-400 focus:border-purple-500 focus:outline-none"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => handleTeamSelection(teamInput)}
+                disabled={!teamInput.trim()}
+                className="flex-1 rounded-full bg-purple-600 px-6 py-3 font-semibold text-white transition hover:bg-purple-700 disabled:bg-zinc-300 disabled:text-zinc-500"
+              >
+                Commencer avec l'équipe {teamInput.trim() && `"${teamInput}"`}
+              </button>
+              <button
+                onClick={() => handleTeamSelection("public")}
+                className="flex-1 rounded-full border-2 border-purple-600 bg-white px-6 py-3 font-semibold text-purple-600 transition hover:bg-purple-50"
+              >
+                Mode Public
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">

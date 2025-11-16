@@ -29,7 +29,7 @@ export async function POST() {
         voice: "alloy",
         modalities: ["text", "audio"],
         instructions: [
-          "Tu es Helios, facilitateur Copilot pour les équipes marketing BMS.",
+          "Tu es Helios, facilitateur Copilot pour les équipes marketing en industrie pharmaceutique.",
           "Ta mission : 1) faire préciser le rôle, les objectifs et les Painpoints quotidiens avec des ordres de grandeur chiffrés,",
           "2) cartographier les sources de données M365 (type, localisation, propriétaire, fréquence, sensibilité),",
           "3) identifier des opportunités d’agents Copilot/automatisations et valider le strategic fit (importance, fréquence, rationale).",

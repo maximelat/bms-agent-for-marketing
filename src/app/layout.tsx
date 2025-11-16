@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BMS Copilot Needs",
-  description: "Recueil structuré des besoins agents M365 Copilot pour BMS.",
+  title: "Agentic Copilot Needs for marketing teams in pharma industry",
+  description: "Recueil structuré des besoins agents M365 Copilot pour les équipes de marketing en industrie pharmaceutique.",
 };
 
 export default function RootLayout({

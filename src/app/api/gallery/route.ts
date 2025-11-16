@@ -25,6 +25,8 @@ export async function GET() {
     // Reconstruire les objets propres
     const canvases = rows.map((row: any) => ({
       id: row.id || `canvas-${row.row_number || Date.now()}`,
+      team: row.team || "public",
+      category: row.category || "Non classifié",
       agentName: row["Agent-Name"] || row.agentName || "Agent sans nom",
       agentDescription: row["Agent-Description"] || row.agentDescription || "Description à définir",
       Persona: row.Persona || row.persona || "À définir",
@@ -128,9 +130,6 @@ export async function POST(request: Request) {
 
     const voteUrl = process.env.N8N_WEBHOOK_VOTE || "https://n8n-byhww-u43341.vm.elestio.app/webhook/79f3c8db-9eb9-420a-b681-0db016ce6b00";
     
-    console.log("Sending vote to:", voteUrl);
-    console.log("Vote payload:", { email: voterEmail, id: canvasId });
-    
     const response = await fetch(voteUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -140,35 +139,17 @@ export async function POST(request: Request) {
       }),
     });
 
-    console.log("Vote response status:", response.status);
-    
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("n8n vote endpoint error:", errorText);
-      return NextResponse.json(
-        { error: `Erreur webhook n8n: ${response.status}`, details: errorText },
-        { status: 500 },
-      );
+      throw new Error("n8n vote endpoint error");
     }
 
-    // Essayer de parser la réponse JSON, mais ne pas échouer si ce n'est pas du JSON
-    let data = null;
-    try {
-      const responseText = await response.text();
-      if (responseText) {
-        data = JSON.parse(responseText);
-      }
-    } catch (parseError) {
-      console.log("Response is not JSON, that's ok");
-    }
-    
-    console.log("Vote successful, response data:", data);
+    const data = await response.json();
     
     return NextResponse.json({ success: true, data });
   } catch (error) {
-    console.error("vote error (caught):", error);
+    console.error("vote error", error);
     return NextResponse.json(
-      { error: "Impossible d'enregistrer le vote.", details: error instanceof Error ? error.message : String(error) },
+      { error: "Impossible d'enregistrer le vote." },
       { status: 500 },
     );
   }

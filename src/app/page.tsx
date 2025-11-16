@@ -7,7 +7,7 @@ export default function Home() {
       <div className="pointer-events-none absolute inset-x-[10%] top-10 h-64 rounded-full bg-gradient-to-r from-[#eb54c7]/40 via-[#7c3aed]/30 to-[#2dd4bf]/30 blur-[140px]" />
       <main className="relative mx-auto flex max-w-5xl flex-col gap-8 px-4 py-10 sm:px-6">
         <section className="space-y-5 text-center sm:text-left">
-          <p className="text-xs uppercase tracking-[0.4em] text-pink-300/90">Bienvenue · Entretien Copilot BMS</p>
+          <p className="text-xs uppercase tracking-[0.4em] text-pink-300/90">Bienvenue · Entretien Ai agent in Copilot</p>
           <h1 className="text-4xl font-semibold text-white">Votre échange guidé pour cartographier les besoins agents</h1>
           <p className="max-w-3xl text-lg text-slate-200">
             Helios vous accompagne pour identifier les irritants de votre quotidien, cartographier vos données M365 et faire émerger

@@ -9,6 +9,7 @@ import { NotificationContainer, Notification } from "@/components/Notification";
 
 export default function GalleryPage() {
   const [canvases, setCanvases] = useState<UseCaseCanvas[]>([]);
+  const [filteredCanvases, setFilteredCanvases] = useState<UseCaseCanvas[]>([]);
   const [loading, setLoading] = useState(true);
   const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
   const [userEmail, setUserEmail] = useState("");
@@ -17,6 +18,8 @@ export default function GalleryPage() {
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [teamFilter, setTeamFilter] = useState("");
+  const [isTeamFilterActive, setIsTeamFilterActive] = useState(false);
 
   useEffect(() => {
     fetchGallery();
@@ -33,12 +36,38 @@ export default function GalleryPage() {
       console.log("Canvases array:", canvasesArray.length, "items");
       
       setCanvases(canvasesArray);
+      applyTeamFilter(canvasesArray, teamFilter, isTeamFilterActive);
     } catch (error) {
       console.error("fetch gallery error", error);
       setCanvases([]);
+      setFilteredCanvases([]);
     } finally {
       setLoading(false);
     }
+  };
+
+  const applyTeamFilter = (canvasArray: UseCaseCanvas[], filter: string, active: boolean) => {
+    if (!active || !filter.trim()) {
+      // Montrer seulement les publics si pas de filtre
+      setFilteredCanvases(canvasArray.filter(c => c.team === "public" || !c.team));
+    } else {
+      // Filtrer par team spécifique
+      setFilteredCanvases(canvasArray.filter(c => c.team === filter.trim()));
+    }
+  };
+
+  const handleTeamFilterChange = (team: string) => {
+    setTeamFilter(team);
+    setIsTeamFilterActive(true);
+    applyTeamFilter(canvases, team, true);
+    addNotification("info", `Filtre équipe "${team}" appliqué`);
+  };
+
+  const handlePublicMode = () => {
+    setTeamFilter("");
+    setIsTeamFilterActive(false);
+    applyTeamFilter(canvases, "", false);
+    addNotification("info", "Mode public activé");
   };
 
   const addNotification = (type: "success" | "error" | "info" | "warning", message: string, duration?: number) => {
@@ -159,7 +188,37 @@ export default function GalleryPage() {
           </div>
         </header>
 
+        {/* Filtre par équipe */}
         <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-4">
+          <p className="mb-3 text-sm font-semibold text-slate-200">Accès à la galerie</p>
+          <div className="flex flex-wrap gap-3">
+            <input
+              type="text"
+              value={teamFilter}
+              onChange={(e) => setTeamFilter(e.target.value)}
+              placeholder="Code équipe (ou laissez vide pour public)"
+              className="flex-1 min-w-[200px] rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-white placeholder:text-white/40 focus:border-purple-400 focus:outline-none"
+            />
+            <button
+              onClick={() => handleTeamFilterChange(teamFilter)}
+              disabled={!teamFilter.trim()}
+              className="rounded-xl bg-purple-600 px-6 py-2 font-semibold text-white transition hover:bg-purple-700 disabled:bg-zinc-600 disabled:opacity-50"
+            >
+              Accéder à l'équipe
+            </button>
+            <button
+              onClick={handlePublicMode}
+              className="rounded-xl border-2 border-purple-600 bg-transparent px-6 py-2 font-semibold text-purple-300 transition hover:bg-purple-600/20"
+            >
+              Mode Public
+            </button>
+          </div>
+          <p className="mt-2 text-xs text-slate-400">
+            {isTeamFilterActive ? `📁 Équipe: ${teamFilter}` : "🌍 Mode public"}
+          </p>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
           <label className="block text-sm text-slate-200">
             Votre email (pour enregistrer vos votes)
             <input
@@ -177,7 +236,7 @@ export default function GalleryPage() {
             <Loader2 className="h-5 w-5 animate-spin" />
             Chargement de la galerie...
           </div>
-        ) : canvases.length === 0 ? (
+        ) : filteredCanvases.length === 0 ? (
           <section className="mt-12 rounded-3xl border border-white/10 bg-white/5 p-8 text-center shadow-[0_35px_120px_rgba(5,5,18,0.8)]">
             <p className="text-lg text-slate-300">
               Aucun canevas dans la galerie pour le moment.
@@ -188,7 +247,7 @@ export default function GalleryPage() {
           </section>
         ) : (
           <div className="mt-12 space-y-6">
-            {canvases
+            {filteredCanvases
               .sort((a, b) => b.votes - a.votes)
               .map((canvas) => {
                 const isExpanded = expandedIds.has(canvas.id);

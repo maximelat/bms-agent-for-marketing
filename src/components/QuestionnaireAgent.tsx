@@ -994,7 +994,7 @@ export const QuestionnaireAgent = () => {
             <input
               type="email"
               className="mt-1 w-full rounded-2xl border border-zinc-200 px-4 py-2 text-sm outline-none focus:border-pink-400"
-              placeholder="prenom.nom@bms.com"
+              placeholder="prenom.nom@labo-pharma.com"
               value={recipientEmail}
               onChange={(event) => setRecipientEmail(event.target.value)}
               required

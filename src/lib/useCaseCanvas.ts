@@ -5,6 +5,10 @@ export interface UseCaseCanvas {
   createdAt: string;
   submittedBy: string; // email de l'interviewé
   
+  // Team et classification
+  team?: string; // Équipe (ou "public" si public)
+  category?: string; // Catégorie métier (générée par IA)
+  
   // Informations agent
   agentName?: string; // Nom de l'agent
   agentDescription?: string; // Description de l'agent
@@ -40,6 +44,8 @@ export const defaultUseCaseCanvas: UseCaseCanvas = {
   id: "",
   createdAt: "",
   submittedBy: "",
+  team: "public",
+  category: "",
   agentName: "",
   agentDescription: "",
   Persona: "",
