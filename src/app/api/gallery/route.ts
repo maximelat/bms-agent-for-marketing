@@ -18,15 +18,13 @@ export async function GET() {
     const rawData = await response.json();
     console.log("Raw gallery data:", JSON.stringify(rawData).substring(0, 500));
     
-    // n8n renvoie soit un array (plusieurs lignes) soit un objet (une seule ligne)
+    // n8n renvoie soit un array (plusieurs lignes) soit un objet (1 seule ligne)
+    // On normalise en array
     const rows = Array.isArray(rawData) ? rawData : [rawData];
     
-    // n8n renvoie des objets aplatis avec des clés comme "dataAndProductUsed[0]"
-    // On doit reconstruire les objets propres
+    // Reconstruire les objets propres
     const canvases = rows.map((row: any) => ({
       id: row.id || `canvas-${row.row_number || Date.now()}`,
-      agentName: row["Agent-Name"] || row.agentName || "Agent sans nom",
-      agentDescription: row["Agent-Description"] || row.agentDescription || "",
       Persona: row.Persona || row.persona || "À définir",
       painpoint: row.painpoint || "À définir",
       opportunitécopilot: row.opportunitécopilot || "À définir",
@@ -98,7 +96,9 @@ export async function GET() {
       })(),
       createdAt: row.createdAt || new Date().toISOString(),
       submittedBy: row.submittedBy || "anonymous",
-    })) : [];
+    }));
+    
+    console.log("Parsed canvases:", canvases.length, "items");
     
     return NextResponse.json({
       canvases,
