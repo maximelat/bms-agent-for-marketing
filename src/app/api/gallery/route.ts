@@ -126,24 +126,23 @@ export async function POST(request: Request) {
       );
     }
 
-    const voteUrl = process.env.N8N_WEBHOOK_VOTE || "https://n8n-byhww-u43341.vm.elestio.app/webhook/79f3c8db-9eb9-420a-b681-0db016ce6b00";
+    const baseVoteUrl = process.env.N8N_WEBHOOK_VOTE || "https://n8n-byhww-u43341.vm.elestio.app/webhook/79f3c8db-9eb9-420a-b681-0db016ce6b00";
+    
+    // Construire l'URL avec les paramètres en query string pour GET
+    const voteUrl = `${baseVoteUrl}?email=${encodeURIComponent(voterEmail)}&id=${encodeURIComponent(canvasId)}`;
     
     const response = await fetch(voteUrl, {
-      method: "POST",
+      method: "GET",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: "canvas-vote",
-        canvasId,
-        voterEmail,
-        votedAt: new Date().toISOString(),
-      }),
     });
 
     if (!response.ok) {
       throw new Error("n8n vote endpoint error");
     }
 
-    return NextResponse.json({ success: true });
+    const data = await response.json();
+    
+    return NextResponse.json({ success: true, data });
   } catch (error) {
     console.error("vote error", error);
     return NextResponse.json(

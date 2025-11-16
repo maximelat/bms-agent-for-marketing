@@ -76,11 +76,16 @@ export default function GalleryPage() {
       });
 
       if (response.ok) {
+        const result = await response.json();
+        console.log("Vote result:", result);
+        
         setVotedIds((prev) => new Set(prev).add(canvasId));
         await fetchGallery(); // Rafraîchir pour voir le nouveau compte
         addNotification("success", "🗳️ Votre vote a été enregistré avec succès !");
       } else {
-        addNotification("error", "Erreur lors du vote. Veuillez réessayer.");
+        const errorData = await response.json();
+        console.error("Vote error:", errorData);
+        addNotification("error", errorData.error || "Erreur lors du vote. Veuillez réessayer.");
       }
     } catch (error) {
       console.error("vote error", error);
